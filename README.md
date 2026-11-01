@@ -45,13 +45,11 @@
 
 ## Установка
 
-**Бинарники** - качайте из Releases этого репозитория, там три файла:
+**Бинарники** - в Releases этого репозитория лежит один файл:
 
-- `CloseCode-Setup-0.1.0-x64.exe` - тонкий установщик (~1 МБ), догружает рантайм Electron по сети;
-- `CloseCode-Offline-0.1.0-x64.exe` - всё внутри (~100 МБ), для машин без интернета;
-- `CloseCode-Portable-0.1.0-x64.exe` - без установки, запуск из папки.
+- [`CloseCode-Offline-0.1.0-x64.exe`](https://github.com/TulenTulenivich/CloseCode/releases/download/v0.1.0/CloseCode-Offline-0.1.0-x64.exe) - полный установщик (~105 МБ), приложение целиком внутри, интернет для установки не нужен.
 
-Установщики не подписаны сертификатом, поэтому SmartScreen первый раз спросит подтверждение.
+Установщик не подписан сертификатом, поэтому SmartScreen первый раз спросит подтверждение.
 
 **Из исходников:**
 
@@ -63,8 +61,10 @@ npm run dev            # приложение в electron-vite
 Для сборки установщиков нужны Windows, NSIS с `makensis` в `PATH` и интернет на время загрузки Electron-архива:
 
 ```bash
-npm run build:win      # три артефакта в release/
+npm run build:win      # Setup / Offline / Portable в release/
 ```
+
+В Release публикуется только offline-сборка - её хватает на машину без интернета, и это один файл вместо трёх.
 
 ## Команды
 
@@ -98,7 +98,7 @@ resources/           иконка, логотип установщика, NSIS-�
 - Проверено и собрано только под Windows x64; на других ОС не тестировалось.
 - Один прогон ограничен 32 шагами инструментов. На лимите агент останавливается с сообщением «Агент достиг лимита шагов» - задачу надо сузить и продолжить.
 - Лимиты бесплатного gateway чужие и меняются без предупреждения - это не SLA.
-- Установщики не подписаны, а offline-артефакт весит больше 100 МБ, поэтому бинарники живут в Releases, а не в коде.
+- Установщик не подписан, а offline-артефакт весит больше 100 МБ, поэтому бинарники живут в Releases, а не в коде.
 
 ---
 
@@ -147,13 +147,11 @@ The window runs in two modes: the regular app and a mini terminal - a compact fr
 
 ### Install
 
-**Binaries** - grab them from this repository's Releases, three files:
+**Binaries** - one file in this repository's Releases:
 
-- `CloseCode-Setup-0.1.0-x64.exe` - thin installer (~1 MB), fetches the Electron runtime over the network;
-- `CloseCode-Offline-0.1.0-x64.exe` - everything inside (~100 MB), for machines without internet;
-- `CloseCode-Portable-0.1.0-x64.exe` - no install, run it from a folder.
+- [`CloseCode-Offline-0.1.0-x64.exe`](https://github.com/TulenTulenivich/CloseCode/releases/download/v0.1.0/CloseCode-Offline-0.1.0-x64.exe) - the full installer (~105 MB), the whole app inside, no internet needed to install.
 
-The installers are not code-signed, so SmartScreen asks for confirmation the first time.
+The installer is not code-signed, so SmartScreen asks for confirmation the first time.
 
 **From source:**
 
@@ -165,8 +163,10 @@ npm run dev            # the app under electron-vite
 Building installers takes Windows, NSIS with `makensis` on `PATH`, and internet access while the Electron archive downloads:
 
 ```bash
-npm run build:win      # three artifacts in release/
+npm run build:win      # Setup / Offline / Portable in release/
 ```
+
+Only the offline build goes into Releases - it covers a machine without internet, and it is one file instead of three.
 
 ### Commands
 
@@ -200,7 +200,7 @@ Settings, history, keys and skills live in `%APPDATA%\CloseCode` and never end u
 - Only built and tested on Windows x64; other operating systems are untested.
 - A single run is capped at 32 tool steps. At the cap the agent stops with "The agent hit its step limit" - narrow the task and continue.
 - The free gateway's limits belong to someone else and change without notice; it is not an SLA.
-- Installers are unsigned and the offline build is over 100 MB, so binaries live in Releases rather than in the code.
+- The installer is unsigned and the offline build is over 100 MB, so binaries live in Releases rather than in the code.
 
 ## Лицензия / License
 
