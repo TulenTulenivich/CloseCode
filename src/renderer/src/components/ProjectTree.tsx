@@ -23,7 +23,11 @@ interface Row {
 }
 
 function absolutePath(projectPath: string, relative: string): string {
-  return `${projectPath.replace(/[\\/]+$/, '')}/${relative}`
+  const isWin = projectPath.includes('\\') || /^[a-zA-Z]:/.test(projectPath)
+  const sep = isWin ? '\\' : '/'
+  const base = projectPath.replace(/[\\/]+$/, '')
+  const rel = isWin ? relative.replace(/\//g, '\\') : relative.replace(/\\/g, '/')
+  return `${base}${sep}${rel}`
 }
 
 export function ProjectTree({ projectPath, projectName, onClose }: ProjectTreeProps): ReactNode {

@@ -1735,6 +1735,23 @@ async function exportChat(payload: ExportChatPayload): Promise<string | null> {
   }
 }
 
+async function exportChatJson(defaultName?: string): Promise<string | null> {
+  try {
+    const filename = defaultName || `chat-${new Date().toISOString().slice(0, 10)}.json`
+    const data = JSON.stringify({ history, exportedAt: new Date().toISOString() }, null, 2)
+    const blob = new Blob([data], { type: 'application/json;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    link.click()
+    window.setTimeout(() => URL.revokeObjectURL(url), 2000)
+    return filename
+  } catch {
+    return null
+  }
+}
+
 async function secondOpinion(): Promise<SecondOpinionResult> {
   if (activeRun) throw new Error(tStatic('e.running'))
   const user = [...history].reverse().find((message) => message.role === 'user')
@@ -1942,6 +1959,7 @@ export function installPreviewApi(): void {
     answerQuestion,
     getActivity,
     exportChat,
+    exportChatJson,
     onAgentEvent: (listener) => {
       listeners.add(listener)
       return () => {

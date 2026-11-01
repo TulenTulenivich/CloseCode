@@ -387,3 +387,12 @@ export function ScreenIcon(props: IconProps): ReactNode {
     </Svg>
   )
 }
+
+export function CopyIcon(props: IconProps): ReactNode {
+  return (
+    <Svg {...props}>
+      <rect width="13" height="13" x="8" y="8" rx="2" ry="2" />
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+    </Svg>
+  )
+}

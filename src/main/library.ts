@@ -95,11 +95,10 @@ function readAgentFile(file: string, source: 'global' | 'project'): LibraryEntry
 function collectSkills(projectPath: string | null): LibraryEntry[] {
   const found: LibraryEntry[] = []
   const seen = new Set<string>()
-  const dirs: { dir: string; source: 'global' | 'project' }[] = [
-    { dir: globalSkillsDir(), source: 'global' }
-  ]
+  const dirs: { dir: string; source: 'global' | 'project' }[] = []
   const project = projectDir(projectPath, 'skills')
   if (project) dirs.push({ dir: project, source: 'project' })
+  dirs.push({ dir: globalSkillsDir(), source: 'global' })
 
   for (const { dir, source } of dirs) {
     let entries: fs.Dirent[]
@@ -122,11 +121,10 @@ function collectSkills(projectPath: string | null): LibraryEntry[] {
 function collectAgents(projectPath: string | null): LibraryEntry[] {
   const found: LibraryEntry[] = []
   const seen = new Set<string>()
-  const dirs: { dir: string; source: 'global' | 'project' }[] = [
-    { dir: globalAgentsDir(), source: 'global' }
-  ]
+  const dirs: { dir: string; source: 'global' | 'project' }[] = []
   const project = projectDir(projectPath, 'agents')
   if (project) dirs.push({ dir: project, source: 'project' })
+  dirs.push({ dir: globalAgentsDir(), source: 'global' })
 
   for (const { dir, source } of dirs) {
     let entries: fs.Dirent[]

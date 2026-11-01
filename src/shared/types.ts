@@ -355,6 +355,7 @@ export interface CloseCodeApi {
   answerQuestion(id: string, answer: string): Promise<void>
   getActivity(): Promise<ActivityView>
   exportChat(payload: ExportChatPayload): Promise<string | null>
+  exportChatJson(defaultName?: string): Promise<string | null>
   onAgentEvent(listener: (event: AgentEvent) => void): () => void
   getWindowState(): Promise<WindowState>
   onWindowState(listener: (state: WindowState) => void): () => void

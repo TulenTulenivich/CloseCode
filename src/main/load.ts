@@ -97,7 +97,7 @@ export function modelLoad(fallbackModel: string | null): ModelLoad {
     requests: totalRequests,
     activeModel: model || null,
     activeBrand: detectBrand(model),
-    firstTokenMs: current ? (current.firstTokenAt ?? Date.now()) - current.startedAt : (firstTokenSamples[firstTokenSamples.length - 1] ?? null),
+    firstTokenMs: current ? (current.firstTokenAt !== null ? current.firstTokenAt - current.startedAt : null) : (firstTokenSamples[firstTokenSamples.length - 1] ?? null),
     avgFirstTokenMs: average(firstTokenSamples) === null ? null : Math.round(average(firstTokenSamples) as number),
     tokensPerSecond:
       liveWindow > 400 ? Math.round((liveTokens * 1000) / liveWindow) : (speedSamples[speedSamples.length - 1] ?? null),

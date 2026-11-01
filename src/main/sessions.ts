@@ -57,11 +57,18 @@ function writeSession(
   const file = fileFor(projectPath)
   try {
     fs.mkdirSync(path.dirname(file), { recursive: true })
-    fs.writeFileSync(
-      file,
-      JSON.stringify({ version: 3, title: cleanTitle(title), messages, transcript }, null, 2),
-      { encoding: 'utf8', mode: 0o600 }
-    )
+    const payload = JSON.stringify({ version: 3, title: cleanTitle(title), messages, transcript }, null, 2)
+    const temp = `${file}.tmp`
+    fs.writeFileSync(temp, payload, { encoding: 'utf8', mode: 0o600 })
+    try {
+      fs.renameSync(temp, file)
+    } catch {
+      fs.copyFileSync(temp, file)
+      try {
+        fs.unlinkSync(temp)
+      } catch {
+      }
+    }
     titleCache.set(file, cleanTitle(title))
   } catch {
   }

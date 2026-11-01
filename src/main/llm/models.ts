@@ -18,7 +18,14 @@ export async function fetchAvailableModels(
 
   let response: Response
   try {
-    response = await fetch(url, { headers })
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15_000)
+    timer.unref?.()
+    try {
+      response = await fetch(url, { headers, signal: controller.signal })
+    } finally {
+      clearTimeout(timer)
+    }
   } catch (error) {
     throw new Error(tr('e.fetchModels', { reason: (error as Error).message }))
   }

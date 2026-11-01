@@ -322,8 +322,10 @@ export interface ToolOutcome {
 }
 
 function splitLines(text: string | null): string[] {
-  if (!text) return []
-  return text.split(/\r?\n/)
+  if (text === null || text === undefined || text === '') return []
+  const normalized = text.endsWith('\n') ? text.slice(0, -1) : text
+  const cleaned = normalized.endsWith('\r') ? normalized.slice(0, -1) : normalized
+  return cleaned.split(/\r?\n/)
 }
 
 export function diffStats(
@@ -374,6 +376,7 @@ function assertRealPathInside(bases: string[], target: string): void {
   } catch {
     return
   }
+  const normProbe = process.platform === 'win32' ? realProbe.toLowerCase() : realProbe
   const escapes = bases.every((base) => {
     let realBase = base
     try {
@@ -381,7 +384,8 @@ function assertRealPathInside(bases: string[], target: string): void {
     } catch {
       realBase = base
     }
-    const rel = path.relative(realBase, realProbe)
+    const normBase = process.platform === 'win32' ? realBase.toLowerCase() : realBase
+    const rel = path.relative(normBase, normProbe)
     return rel.startsWith('..') || path.isAbsolute(rel)
   })
   if (escapes) throw new Error(tr('e.noAccess'))
@@ -442,7 +446,16 @@ async function resolveWithGrant(
       newContent: null
     })
     if (answer === 'deny') throw new Error(tr('e.noAccess'))
-    if (answer === 'always') context.grant(path.dirname(error.absolutePath))
+    if (answer === 'always') {
+      let isDir = false
+      try {
+        isDir = fs.statSync(error.absolutePath).isDirectory()
+      } catch {
+        isDir = !path.extname(error.absolutePath)
+      }
+      context.grant(isDir ? error.absolutePath : path.dirname(error.absolutePath))
+    }
+    assertRealPathInside([error.absolutePath, path.dirname(error.absolutePath), root], error.absolutePath)
     return { absolute: error.absolutePath, display: error.absolutePath, outside: true }
   }
 }
@@ -563,7 +576,9 @@ function readFileSyncText(target: Located): { text: string; truncated: boolean }
 async function readFile(args: Record<string, unknown>, context: ToolContext): Promise<ToolOutcome> {
   const target = await resolveWithGrant(context, args.path, 'read-outside')
   try {
-    if (!fs.existsSync(target.absolute)) throw new Error('ENOENT')
+    if (!fs.existsSync(target.absolute)) {
+      throw Object.assign(new Error(tr('e.notFound', { path: target.display })), { code: 'ENOENT' })
+    }
     const { text, truncated } = readFileSyncText(target)
     return {
       ok: true,
@@ -573,7 +588,8 @@ async function readFile(args: Record<string, unknown>, context: ToolContext): Pr
         : `--- ${target.display} ---\n(empty file)`
     }
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+    const err = error as NodeJS.ErrnoException
+    if (err.code === 'ENOENT' || err.message === 'ENOENT' || err.message?.includes('not found')) {
       throw new Error(tr('e.notFound', { path: target.display }))
     }
     throw error
@@ -581,11 +597,39 @@ async function readFile(args: Record<string, unknown>, context: ToolContext): Pr
 }
 
 function globToRegExp(glob: string): RegExp {
-  const escaped = glob
-    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*/g, '[^/]*')
-    .replace(/\?/g, '[^/]')
-  return new RegExp(`(^|/)${escaped}$`, 'i')
+  const normalized = glob.replace(/\\/g, '/').replace(/^\/+/ , '')
+  let pattern = ''
+  let i = 0
+  while (i < normalized.length) {
+    if (normalized[i] === '*' && normalized[i + 1] === '*') {
+      if (normalized[i + 2] === '/') {
+        pattern += '(?:.+/)?'
+        i += 3
+        continue
+      }
+      pattern += '.*'
+      i += 2
+      continue
+    }
+    if (normalized[i] === '*') {
+      pattern += '[^/]*'
+      i++
+      continue
+    }
+    if (normalized[i] === '?') {
+      pattern += '[^/]'
+      i++
+      continue
+    }
+    if (['.', '+', '^', '$', '{', '}', '(', ')', '|', '[', ']', '\\'].includes(normalized[i])) {
+      pattern += '\\' + normalized[i]
+    } else {
+      pattern += normalized[i]
+    }
+    i++
+  }
+  const hasSlash = glob.includes('/') || glob.includes('\\')
+  return new RegExp(hasSlash ? `^${pattern}$` : `(^|/)${pattern}$`, 'i')
 }
 
 function walkFiles(root: string, limit: number): { path: string; relative: string }[] {
@@ -669,6 +713,7 @@ function searchFiles(args: Record<string, unknown>, context: ToolContext): ToolO
       matches.push(`${file.relative}:${index + 1}: ${lines[index].trim().slice(0, 240)}`)
       if (matches.length >= MAX_SEARCH_MATCHES) break
     }
+    if (matches.length >= MAX_SEARCH_MATCHES) break
   }
 
   if (!matches.length) {
@@ -760,9 +805,9 @@ function imageExtension(mime: string): string {
 }
 
 function slugForPrompt(prompt: string): string {
-  const ascii = prompt.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-  const words = ascii
-    .replace(/[^a-z0-9]+/g, ' ')
+  const normalized = prompt.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  const words = normalized
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()
     .split(/\s+/)
     .filter(Boolean)
@@ -775,7 +820,7 @@ function normalizeImagePath(rawPath: string, mime: string): string {
   const expected = imageExtension(mime)
   const known = ['.png', '.jpg', '.jpeg', '.webp', '.gif']
   if (!ext || !known.includes(ext)) return `${rawPath}.${expected}`
-  if (ext === `.${expected}` || (expected === 'jpg' && ext === '.jpeg')) return rawPath
+  if (ext === `.${expected}` || (expected === 'jpg' && ext === '.jpeg') || (expected === 'jpeg' && ext === '.jpg')) return rawPath
   return `${rawPath.slice(0, -ext.length)}.${expected}`
 }
 
@@ -902,7 +947,7 @@ async function takeScreenshot(
     }
   }
   const raw = Number(args.display ?? 1)
-  const display = Number.isFinite(raw) ? Math.trunc(raw) : 1
+  const display = Number.isFinite(raw) ? (raw <= 0 ? 1 : Math.trunc(raw)) : 1
   const shot = await capability.capture(display)
   if (!shot.buffer.length) throw new Error(tr('e.noScreen'))
   if (shot.buffer.length > MAX_IMAGE_BYTES) throw new Error(tr('e.imageTooBig'))
@@ -944,8 +989,12 @@ function useSkill(args: Record<string, unknown>, context: ToolContext): ToolOutc
 }
 
 function sameFolder(a: string, b: string): boolean {
-  const normalize = (value: string): string =>
-    path.resolve(value).replace(/[\\/]+$/, '').toLowerCase()
+  const normalize = (value: string): string => {
+    const resolved = path.resolve(value)
+    const stripped = resolved.replace(/[\\/]+$/, '')
+    const finalPath = stripped.endsWith(':') ? `${stripped}\\` : stripped
+    return process.platform === 'win32' ? finalPath.toLowerCase() : finalPath
+  }
   try {
     return normalize(a) === normalize(b)
   } catch {

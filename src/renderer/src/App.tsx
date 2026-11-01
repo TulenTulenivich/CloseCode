@@ -460,7 +460,7 @@ export default function App(): ReactNode {
       }
     })
     return unsubscribe
-  }, [lang, applyView])
+  }, [lang, applyView, hydrateProject])
 
   useEffect(() => {
     const element = scrollRef.current

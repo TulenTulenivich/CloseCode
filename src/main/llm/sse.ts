@@ -32,7 +32,8 @@ export async function* readSse(response: Response): AsyncGenerator<SseEvent> {
       return null
     }
     if (line.startsWith('data:')) {
-      dataLines.push(line.slice(5).trimStart())
+      const rest = line.slice(5)
+      dataLines.push(rest.startsWith(' ') ? rest.slice(1) : rest)
       return null
     }
     return null
@@ -81,7 +82,11 @@ export async function readHttpError(response: Response): Promise<Error> {
     }
   } catch {
   }
-  detail = detail.replace(/\s+/g, ' ').trim().slice(0, 600)
+  detail = detail
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 600)
   const status = `HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`
   return new Error(detail ? `${status}: ${detail}` : status)
 }
@@ -94,6 +99,13 @@ export function endpointUrl(baseUrl: string, suffix: string): string {
       base = base.slice(0, -known.length)
       break
     }
+  }
+  if (base.startsWith('https://api.openai.com') && !base.includes('/v1')) {
+    base = 'https://api.openai.com/v1'
+  } else if (base.startsWith('https://api.anthropic.com') && !base.includes('/v1')) {
+    base = 'https://api.anthropic.com/v1'
+  } else if (base.startsWith('https://api.deepseek.com') && !base.includes('/v1')) {
+    base = 'https://api.deepseek.com/v1'
   }
   const url = base + suffix
   try {
@@ -124,7 +136,7 @@ export async function postForSse(
       signal
     })
   } catch (error) {
-    if ((error as Error).name === 'AbortError') throw error
+    if (signal.aborted || (error as Error).name === 'AbortError') throw error
     throw new Error(tr('e.connect', { host, reason: (error as Error).message }))
   }
   if (!response.ok) throw await readHttpError(response)
