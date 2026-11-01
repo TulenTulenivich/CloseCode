@@ -7,3 +7,5 @@ dist/
 .artifacts/
 artifacts/
 release-build/
+resources/installer/payload.loader.nsh
+resources/installer/payload.offline.nsh
