@@ -20,6 +20,8 @@ import {
   isFreeProvider
 } from '../../../shared/freeModels'
 import type {
+  UnlockerStatusView,
+  RemoteControlStatusView,
   ActivityDay,
   ActivityView,
   AgentEvent,
@@ -1735,6 +1737,37 @@ async function exportChat(payload: ExportChatPayload): Promise<string | null> {
   }
 }
 
+async function getUnlockerStatus(): Promise<UnlockerStatusView> {
+  return {
+    alive: true,
+    port: 53129,
+    enabled: true,
+    googleAccount: {
+      email: 'hdhfuai@gmail.com',
+      hasToken: true,
+      authMethod: 'consumer'
+    }
+  }
+}
+
+async function setUnlockerEnabled(enabled: boolean): Promise<UnlockerStatusView> {
+  const status = await getUnlockerStatus()
+  status.enabled = enabled
+  return status
+}
+
+async function importAntigravityGoogle(): Promise<SettingsView> {
+  return getSettings()
+}
+
+async function getRemoteControlStatus(): Promise<RemoteControlStatusView> {
+  return { running: false, port: 4242 }
+}
+
+async function setRemoteControl(enabled: boolean, port = 4242): Promise<RemoteControlStatusView> {
+  return { running: enabled, port }
+}
+
 async function exportChatJson(defaultName?: string): Promise<string | null> {
   try {
     const filename = defaultName || `chat-${new Date().toISOString().slice(0, 10)}.json`
@@ -1960,6 +1993,11 @@ export function installPreviewApi(): void {
     getActivity,
     exportChat,
     exportChatJson,
+    getUnlockerStatus,
+    setUnlockerEnabled,
+    importAntigravityGoogle,
+    getRemoteControlStatus,
+    setRemoteControl,
     onAgentEvent: (listener) => {
       listeners.add(listener)
       return () => {

@@ -45,6 +45,11 @@ const api: CloseCodeApi = {
   getActivity: () => ipcRenderer.invoke('activity:get'),
   exportChat: (payload) => ipcRenderer.invoke('chat:export', payload),
   exportChatJson: (defaultName) => ipcRenderer.invoke('chat:export-json', defaultName),
+  getUnlockerStatus: () => ipcRenderer.invoke('unlocker:status'),
+  setUnlockerEnabled: (enabled) => ipcRenderer.invoke('unlocker:set-enabled', enabled),
+  importAntigravityGoogle: () => ipcRenderer.invoke('unlocker:import-google'),
+  getRemoteControlStatus: () => ipcRenderer.invoke('remote-control:status'),
+  setRemoteControl: (enabled, port) => ipcRenderer.invoke('remote-control:set', enabled, port),
   onAgentEvent: (listener) => {
     const handler = (_event: Electron.IpcRendererEvent, event: AgentEvent): void => listener(event)
     ipcRenderer.on('agent:event', handler)

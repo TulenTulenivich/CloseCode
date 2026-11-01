@@ -162,6 +162,22 @@ export interface ApprovalImage {
   bytes: number
 }
 
+export interface UnlockerStatusView {
+  alive: boolean
+  port: number
+  enabled: boolean
+  googleAccount: {
+    email: string | null
+    hasToken: boolean
+    authMethod: string | null
+  } | null
+}
+
+export interface RemoteControlStatusView {
+  running: boolean
+  port: number
+}
+
 export interface ApprovalRequest {
   id: string
   scope: ApprovalScope
@@ -356,6 +372,11 @@ export interface CloseCodeApi {
   getActivity(): Promise<ActivityView>
   exportChat(payload: ExportChatPayload): Promise<string | null>
   exportChatJson(defaultName?: string): Promise<string | null>
+  getUnlockerStatus(): Promise<UnlockerStatusView>
+  setUnlockerEnabled(enabled: boolean): Promise<UnlockerStatusView>
+  importAntigravityGoogle(): Promise<SettingsView>
+  getRemoteControlStatus(): Promise<RemoteControlStatusView>
+  setRemoteControl(enabled: boolean, port?: number): Promise<RemoteControlStatusView>
   onAgentEvent(listener: (event: AgentEvent) => void): () => void
   getWindowState(): Promise<WindowState>
   onWindowState(listener: (state: WindowState) => void): () => void

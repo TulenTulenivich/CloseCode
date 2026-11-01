@@ -50,6 +50,12 @@ export interface AgentRunOptions {
   parentCallId?: string | null
   agentName?: string | null
   depth?: number
+  onRotateAccount?: () => Promise<{
+    switched: boolean
+    providerLabel: string
+    model: string
+    provider: { kind: ProviderKind; apiKey: string; baseUrl: string; models?: string[] }
+  } | null>
 }
 
 const MAX_ROUNDS = 32
@@ -286,6 +292,27 @@ export async function runAgent(options: AgentRunOptions): Promise<void> {
     } catch (error) {
       abandonRequest(trace.id)
       trace.done()
+      const errText = (error instanceof Error ? error.message : String(error)).toLowerCase()
+      const isQuota =
+        errText.includes('429') ||
+        errText.includes('quota') ||
+        errText.includes('resource_exhausted') ||
+        errText.includes('rate_limit') ||
+        errText.includes('insufficient_quota') ||
+        errText.includes('limit reached') ||
+        errText.includes('credit')
+      if (isQuota && options.onRotateAccount && !signal.aborted) {
+        const rotated = await options.onRotateAccount()
+        if (rotated?.switched) {
+          options.provider = rotated.provider
+          options.model = rotated.model
+          options.emit({
+            type: 'text-delta',
+            text: `\n\n> ⚡ *Лимит квоты исчерпан (0%). Автоматически переключено на аккаунт: **${rotated.providerLabel}** (${rotated.model}). Автоматически продолжаю разговор...*\n\n`
+          })
+          continue
+        }
+      }
       if (!isContextOverflow(error) || overflowRetries >= MAX_OVERFLOW_RETRIES || signal.aborted) {
         throw error
       }

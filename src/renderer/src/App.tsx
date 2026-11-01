@@ -25,6 +25,7 @@ import { QuestionCard } from './components/QuestionCard'
 import { ProviderLogo, brandForProvider } from './components/ProviderLogo'
 import { WindowControls, WindowResizeHandles } from './components/WindowChrome'
 import { TerminalView } from './components/TerminalView'
+import { UnlockerModal } from './components/UnlockerModal'
 import {
   AlertIcon,
   ExpandIcon,
@@ -33,6 +34,7 @@ import {
   LockIcon,
   PlusIcon,
   SettingsIcon,
+  ShieldIcon,
   TerminalIcon,
   XIcon
 } from './components/Icons'
@@ -161,6 +163,7 @@ export default function App(): ReactNode {
   const [streaming, setStreaming] = useState(false)
   const [compacting, setCompacting] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [unlockerOpen, setUnlockerOpen] = useState(false)
   const [treeOpen, setTreeOpen] = useState(false)
   const [approval, setApproval] = useState<ApprovalRequest | null>(null)
   const [question, setQuestion] = useState<UserQuestion | null>(null)
@@ -173,6 +176,17 @@ export default function App(): ReactNode {
   const [terminalTab, setTerminalTab] = useState<'agent' | 'shell'>('shell')
   const [appShellOpen, setAppShellOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'u' || event.key === 'U')) {
+        event.preventDefault()
+        setUnlockerOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const atBottomRef = useRef(true)
 
@@ -969,6 +983,15 @@ export default function App(): ReactNode {
             <button
               type="button"
               className="icon-btn"
+              title="AgyUnlocker & Antigravity (Ctrl+U)"
+              aria-label="AgyUnlocker & Antigravity"
+              onClick={() => setUnlockerOpen(true)}
+            >
+              <ShieldIcon size={16} />
+            </button>
+            <button
+              type="button"
+              className="icon-btn"
               title={t('chrome.settings')}
               aria-label={t('chrome.settings')}
               onClick={() => setSettingsOpen(true)}
@@ -1123,6 +1146,15 @@ export default function App(): ReactNode {
         />
       )}
       {opinion && <SecondOpinion state={opinion} onClose={() => setOpinion(null)} />}
+      {unlockerOpen && (
+        <UnlockerModal
+          onClose={() => setUnlockerOpen(false)}
+          onGoogleImported={() => {
+            void hydrateProject()
+            setToast('Google (Gemini Pro/Ultra) подключён!')
+          }}
+        />
+      )}
       {settingsOpen && (
         <SettingsScreen
           settings={settings}

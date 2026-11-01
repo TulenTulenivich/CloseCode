@@ -79,7 +79,7 @@ export function formatTokens(value: number): string {
 }
 
 function renderTranscript(messages: ChatMessage[], limit: number): string {
-  const budget = Math.max(8000, Math.min(180000, Math.floor(limit * 3.2 * 0.55)))
+  const budget = Math.max(8000, Math.min(1_500_000, Math.floor(limit * 3.2 * 0.55)))
   const parts: string[] = []
   let used = 0
   let omitted = false

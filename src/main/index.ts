@@ -17,6 +17,7 @@ import type {
   EffortLevel,
   ExportChatPayload,
   FetchModelsPayload,
+  ProviderView,
   RestoredMessage,
   SaveSettingsPayload,
   SecondOpinionPayload,
@@ -47,6 +48,8 @@ import type { ChatMessage, MessageImage } from './llm/types'
 import { flushActivity, getActivity, recordMessage, recordTool } from './activity'
 import { modelLoad } from './load'
 import { openLibraryDir } from './library'
+import { applyUnlockerProxy, getUnlockerStatus, setUnlockerEnabled, importGoogleAntigravityProvider } from './unlocker'
+import { remoteControl } from './remoteControl'
 import { tr } from './lang'
 import {
   clearHistory,
@@ -284,6 +287,7 @@ function generateTaskTitle(
 }
 
 function emit(event: AgentEvent): void {
+  remoteControl.broadcastEvent(event)
   if (event.type === 'tool-start') {
     toolNames.set(event.id, event.name)
   } else if (event.type === 'tool-end') {
@@ -1229,6 +1233,32 @@ function registerIpc(): void {
       onProjectSwitch: (target) => {
         pendingProject = target
       },
+      onRotateAccount: async () => {
+        const currentSettings = getSettingsView()
+        const allProviders = currentSettings.providers.filter((p: ProviderView) => p.hasKey && p.models.length > 0)
+        if (allProviders.length <= 1) return null
+        const currentIndex = allProviders.findIndex((p: ProviderView) => p.id === currentSettings.activeProviderId)
+        const nextIndex = (currentIndex + 1) % allProviders.length
+        const nextProvider = allProviders[nextIndex]
+        if (!nextProvider || nextProvider.id === currentSettings.activeProviderId) return null
+        const nextModel = nextProvider.models[0] || model
+        setActiveModel(nextProvider.id, nextModel)
+        emitContext()
+        emitLoad()
+        const agentProv = getAgentProvider(nextProvider.id)
+        if (!agentProv) return null
+        return {
+          switched: true,
+          providerLabel: nextProvider.label,
+          model: nextModel,
+          provider: {
+            kind: agentProv.kind,
+            apiKey: agentProv.apiKey,
+            baseUrl: agentProv.baseUrl,
+            models: agentProv.models
+          }
+        }
+      },
       grantRootFor: findGrantRoot,
       grant: (absolutePath) => addAllowedRoot(absolutePath),
       requestApproval: (request: ApprovalRequest) => {
@@ -1369,6 +1399,31 @@ function registerIpc(): void {
   })
 
   ipcMain.handle('activity:get', () => getActivity())
+
+  ipcMain.handle('unlocker:status', () => getUnlockerStatus())
+  ipcMain.handle('unlocker:set-enabled', (_event, enabled: unknown) => {
+    setUnlockerEnabled(Boolean(enabled))
+    return getUnlockerStatus()
+  })
+  ipcMain.handle('unlocker:import-google', () => {
+    const s = importGoogleAntigravityProvider()
+    emitContext()
+    emitLoad()
+    return s
+  })
+  ipcMain.handle('remote-control:status', () => ({
+    running: remoteControl.isRunning(),
+    port: remoteControl.getPort()
+  }))
+  ipcMain.handle('remote-control:set', async (_event, enabled: unknown, port?: unknown) => {
+    if (enabled) {
+      const p = await remoteControl.start(Number(port) || 4242)
+      return { running: true, port: p }
+    } else {
+      await remoteControl.stop()
+      return { running: false, port: 4242 }
+    }
+  })
 }
 
 const hasLock = app.requestSingleInstanceLock()
@@ -1384,6 +1439,29 @@ if (!hasLock) {
 
   app.whenReady().then(() => {
     app.setAppUserModelId('com.closecode.app')
+    applyUnlockerProxy()
+    if (process.argv.includes('--remote-control')) {
+      void remoteControl.start(4242)
+    }
+    remoteControl.setHandlers({
+      onPrompt: async (text) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('remote:prompt', { prompt: text })
+        }
+      },
+      onStop: () => {
+        if (runController) {
+          runController.abort()
+          runController = null
+        }
+      },
+      getState: () => ({
+        activeModel: getSettingsView().activeModel,
+        activeProject: getSettingsView().activeProjectPath,
+        running
+      }),
+      getHistory: () => history
+    })
     registerIpc()
     history = loadHistory(getProjectPath())
     transcript = loadProjectTranscript(getProjectPath())
