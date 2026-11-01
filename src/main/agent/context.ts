@@ -47,10 +47,14 @@ export function contextLimitForModel(model: string): number {
 
 export function estimateHistoryTokens(messages: ChatMessage[], system: string): number {
   let chars = system.length + 32
+  let imageTokens = 0
   for (const message of messages) {
     chars += messageText(message).length + 16
+    if (message.role === 'user' && message.images?.length) {
+      imageTokens += message.images.length * 1200
+    }
   }
-  return Math.ceil(chars / 3.2) + TOOL_SCHEMA_TOKENS + messages.length * 4
+  return Math.ceil(chars / 3.2) + TOOL_SCHEMA_TOKENS + messages.length * 4 + imageTokens
 }
 
 export function buildContextState(
@@ -120,22 +124,31 @@ function trimToFit(messages: ChatMessage[], system: string, limit: number): void
   }
 
   while (kept.length && kept[0].role === 'tool') kept.shift()
-  const first = kept[0]
-  if (first && first.role === 'assistant' && first.toolCalls?.length) {
-    const toolIds = new Set(
-      kept.filter((message) => message.role === 'tool').map((message) => message.toolCallId)
-    )
-    if (!first.toolCalls.every((call) => toolIds.has(call.id))) kept.shift()
+  for (let i = 0; i < kept.length; i++) {
+    const msg = kept[i]
+    if (msg.role === 'assistant' && msg.toolCalls?.length) {
+      const toolIds = new Set(
+        kept.slice(i + 1).filter((m) => m.role === 'tool').map((m) => m.toolCallId)
+      )
+      if (!msg.toolCalls.every((call) => toolIds.has(call.id))) {
+        msg.toolCalls = msg.toolCalls.filter((call) => toolIds.has(call.id))
+        if (!msg.toolCalls.length && !msg.content.trim()) {
+          msg.content = tr('sys.ackTrim')
+        }
+      }
+    }
   }
   while (kept.length && kept[0].role === 'tool') kept.shift()
 
-  messages.splice(
-    0,
-    messages.length,
-    { role: 'user', content: tr('sys.trimmed') },
-    { role: 'assistant', content: tr('sys.ackTrim') },
-    ...kept
-  )
+  const first = kept[0]
+  const prefix: ChatMessage[] = [
+    { role: 'user', content: tr('sys.trimmed') }
+  ]
+  if (!first || first.role !== 'assistant') {
+    prefix.push({ role: 'assistant', content: tr('sys.ackTrim') })
+  }
+
+  messages.splice(0, messages.length, ...prefix, ...kept)
 }
 
 interface CompactOptions {

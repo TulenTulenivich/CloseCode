@@ -616,17 +616,22 @@ export function clampCompactPercent(percent: number, limit: number): number {
 
 export function contextWindowFor(model: string): number {
   const id = model.toLowerCase()
+  if (id.includes('2m') || id.includes('2000000')) return 2_000_000
   if (id.includes('1m') || id.includes('-1000k') || id.includes('1000000')) return 1_000_000
   if (id.includes('gemini')) return 1_048_576
   if (id.includes('claude')) return 200_000
-  if (id.includes('gpt-4.1') || id.includes('gpt-4o')) return 128_000
-  if (id.includes('gpt-4')) return 128_000
+  if (id.includes('gpt-4.1') || id.includes('gpt-4o') || id.includes('gpt-4-turbo')) return 128_000
+  if (id.includes('gpt-4-32k')) return 32_768
+  if (id.includes('gpt-4')) return 8_192
+  if (id.includes('gpt-3.5-turbo-16k')) return 16_385
+  if (id.includes('gpt-3.5')) return 16_385
   if (id.includes('deepseek')) return 128_000
   if (id.includes('qwen')) return 131_072
   if (id.includes('llama')) return 131_072
   if (id.includes('kimi')) return 200_000
   if (id.includes('glm')) return 200_000
-  if (id.includes('mistral')) return 128_000
-  if (id.includes('gemma')) return 32_768
+  if (id.includes('mistral') || id.includes('codestral')) return 128_000
+  if (id.includes('gemma')) return 8_192
+  if (id.includes('grok')) return 131_072
   return 128_000
 }

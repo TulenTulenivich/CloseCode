@@ -29,6 +29,7 @@ import {
   SettingsIcon,
   ShieldIcon,
   SparkIcon,
+  CopyIcon,
   TrashIcon,
   UsersIcon,
   XIcon
@@ -112,7 +113,11 @@ const PRESETS: Array<{
   { name: 'OpenAI', kind: 'openai', baseUrl: 'https://api.openai.com/v1', models: ['gpt-4o-mini'] },
   { name: 'Anthropic', kind: 'anthropic', baseUrl: 'https://api.anthropic.com/v1', models: [] },
   { name: 'OpenRouter', kind: 'openai', baseUrl: 'https://openrouter.ai/api/v1', models: [] },
-  { name: 'DeepSeek', kind: 'openai', baseUrl: 'https://api.deepseek.com/v1', models: ['deepseek-chat'] },
+  { name: 'Google Gemini', kind: 'openai', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', models: ['gemini-2.5-flash', 'gemini-2.5-pro'] },
+  { name: 'Groq', kind: 'openai', baseUrl: 'https://api.groq.com/openai/v1', models: ['llama-3.3-70b-versatile'] },
+  { name: 'DeepSeek', kind: 'openai', baseUrl: 'https://api.deepseek.com', models: ['deepseek-chat', 'deepseek-reasoner'] },
+  { name: 'Mistral AI', kind: 'openai', baseUrl: 'https://api.mistral.ai/v1', models: ['mistral-large-latest', 'codestral-latest'] },
+  { name: 'xAI (Grok)', kind: 'openai', baseUrl: 'https://api.x.ai/v1', models: ['grok-2-latest'] },
   {
     name: 'Ollama',
     labelKey: 's.presetOllama',
@@ -282,6 +287,23 @@ export function SettingsScreen({
         clearKey: false,
         hasKey: false,
         free: false,
+        fetch: { loading: false, error: '', info: '' }
+      }
+    ])
+  }
+
+  function duplicateProvider(source: Row): void {
+    setError('')
+    const suffix = t('s.accountCopy')
+    setRows((prev) => [
+      ...prev,
+      {
+        ...source,
+        id: newId(),
+        label: `${source.label} (${suffix})`,
+        apiKey: '',
+        clearKey: false,
+        hasKey: false,
         fetch: { loading: false, error: '', info: '' }
       }
     ])
@@ -910,6 +932,15 @@ export function SettingsScreen({
                         <div className="card-head-actions">
                           {isActiveProvider && <Badge tone="ok">{t('s.active')}</Badge>}
                           <Badge>{tc('unit.model', models.length)}</Badge>
+                          <button
+                            type="button"
+                            className="icon-btn"
+                            title={t('s.duplicateAccount')}
+                            aria-label={t('s.duplicateAccount')}
+                            onClick={() => duplicateProvider(row)}
+                          >
+                            <CopyIcon size={14} />
+                          </button>
                           <button
                             type="button"
                             className="icon-btn danger"

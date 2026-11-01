@@ -1,3 +1,59 @@
+function AssistantRow({
+  item,
+  isLast,
+  streaming
+}: {
+  item: Extract<ChatItem, { kind: 'assistant' }>
+  isLast: boolean
+  streaming: boolean
+}): ReactNode {
+  const { t } = useT()
+  const [copied, setCopied] = useState(false)
+
+  const copy = (): void => {
+    void navigator.clipboard.writeText(item.text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="assistant-row" key={item.id}>
+      <div className="assistant-body">
+        <Markdown>{item.text}</Markdown>
+        {isLast && streaming && <span className="cursor" />}
+      </div>
+      {!streaming && item.text.trim() && (
+        <div className="assistant-actions" style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+          <button
+            type="button"
+            className="chat-action-btn"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '11px',
+              opacity: 0.7,
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'inherit',
+              padding: '2px 6px',
+              borderRadius: '4px'
+            }}
+            onClick={copy}
+            title={copied ? t('c.copied') : t('c.copy')}
+            aria-label={copied ? t('c.copied') : t('c.copy')}
+          >
+            {copied ? <CheckIcon size={12} /> : <CopyIcon size={12} />}
+            <span>{copied ? t('c.copied') : t('c.copy')}</span>
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ChatItem, CompactionItem, ImageItem, ToolItem } from '../chat'
 import { toolLabel } from '../chat'
@@ -8,6 +64,7 @@ import {
   AlertIcon,
   CheckIcon,
   ChevronRightIcon,
+  CopyIcon,
   CompressIcon,
   FileIcon,
   FolderIcon,
@@ -376,14 +433,7 @@ export function ChatLog({ items, streaming, compacting }: ChatLogProps): ReactNo
         if (item.kind === 'user') return <UserRow item={item} key={item.id} />
         if (item.kind === 'assistant') {
           const isLast = lastItem?.kind === 'assistant' && lastItem.id === item.id
-          return (
-            <div className="assistant-row" key={item.id}>
-              <div className="assistant-body">
-                <Markdown>{item.text}</Markdown>
-                {isLast && streaming && <span className="cursor" />}
-              </div>
-            </div>
-          )
+          return <AssistantRow item={item} isLast={isLast} streaming={streaming} key={item.id} />
         }
         if (item.kind === 'compaction') return <CompactionRow item={item} key={item.id} />
         if (item.kind === 'image') return <ImageRow item={item} key={item.id} />

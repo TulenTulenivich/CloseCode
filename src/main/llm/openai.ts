@@ -33,9 +33,10 @@ function reasoningDelta(delta: OpenAiDelta): string {
 }
 
 function userContent(message: Extract<ChatMessage, { role: 'user' }>): unknown {
-  if (!message.images?.length) return message.content
+  if (!message.images?.length) return message.content || ' '
+  const textPart = message.content.trim() ? message.content : ' '
   return [
-    ...(message.content.trim() ? [{ type: 'text', text: message.content }] : []),
+    { type: 'text', text: textPart },
     ...message.images.map((image) => ({
       type: 'image_url',
       image_url: { url: `data:${image.mime};base64,${image.data}` }
@@ -50,9 +51,11 @@ function toOpenAiMessages(messages: ChatMessage[], system: string): unknown[] {
     if (message.role === 'user') {
       result.push({ role: 'user', content: userContent(message) })
     } else if (message.role === 'assistant') {
-      const entry: Record<string, unknown> = { role: 'assistant', content: message.content }
-      if (message.toolCalls?.length) {
-        entry.tool_calls = message.toolCalls.map((call) => ({
+      const hasTools = Boolean(message.toolCalls?.length)
+      const contentValue = message.content && message.content.trim() ? message.content : (hasTools ? null : '')
+      const entry: Record<string, unknown> = { role: 'assistant', content: contentValue }
+      if (hasTools) {
+        entry.tool_calls = message.toolCalls!.map((call) => ({
           id: call.id,
           type: 'function',
           function: { name: call.name, arguments: call.arguments }
@@ -82,9 +85,18 @@ export const streamOpenAi: ProviderStream = async (
     stream: true,
     messages: toOpenAiMessages(request.messages, request.system)
   }
-  if (request.maxTokens) body.max_tokens = request.maxTokens
-  if (typeof request.temperature === 'number') body.temperature = request.temperature
-  if (request.reasoningEffort) body.reasoning_effort = request.reasoningEffort
+  const isDeepSeek = request.baseUrl.includes('deepseek') || request.model.toLowerCase().includes('deepseek')
+  const isReasoning = /(^|[/-])(o[134]|gpt-5)/i.test(request.model)
+  if (request.maxTokens) {
+    if (isReasoning && !isDeepSeek) {
+      body.max_completion_tokens = request.maxTokens
+    } else {
+      body.max_tokens = request.maxTokens
+    }
+  }
+  const isDeepSeekReasoner = isDeepSeek && request.model.toLowerCase().includes('reasoner')
+  if (typeof request.temperature === 'number' && !isDeepSeekReasoner) body.temperature = request.temperature
+  if (request.reasoningEffort && !isDeepSeek) body.reasoning_effort = request.reasoningEffort
   if (request.tools.length) {
     body.tools = request.tools.map((tool) => ({
       type: 'function',
@@ -119,11 +131,14 @@ export const streamOpenAi: ProviderStream = async (
     const choice = choices?.[0]
     if (!choice) continue
     const delta = (choice.delta ?? {}) as OpenAiDelta
+    const rDelta = reasoningDelta(delta)
     if (typeof delta.content === 'string' && delta.content) {
       text += delta.content
       onText(delta.content)
+    } else if (rDelta) {
+      onText(rDelta)
     }
-    reasoning += reasoningDelta(delta)
+    if (rDelta) reasoning += rDelta
     if (Array.isArray(delta.tool_calls)) {
       for (const item of delta.tool_calls) {
         const index = typeof item.index === 'number' ? item.index : 0

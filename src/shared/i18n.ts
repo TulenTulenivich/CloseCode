@@ -1,6 +1,9 @@
 export type Lang = 'ru' | 'en'
 
 const entries = {
+  'c.copy': ['Копировать', 'Copy'],
+  'c.copied': ['Скопировано', 'Copied'],
+  'chat.exportJson': ['Экспорт в JSON', 'Export to JSON'],
   'chrome.settings': ['Настройки', 'Settings'],
   'chrome.api': ['{n} API', '{n} API'],
   'chrome.apiKey': ['API-ключ', 'API key'],
@@ -617,6 +620,10 @@ const entries = {
   's.edit': ['Изменить', 'Edit'],
   's.providerCount': ['{n} подключено', '{n} connected'],
   's.removeProvider': ['Удалить провайдера {name}', 'Remove {name}'],
+  's.duplicateAccount': ['Дублировать аккаунт', 'Duplicate account'],
+  's.accountCopy': ['копия', 'copy'],
+  's.quickAccounts': ['Быстрые платформы и аккаунты', 'Quick platforms & accounts'],
+  's.instantSwitch': ['Переключить платформу', 'Switch platform'],
   's.keyMissing': ['без ключа', 'no key'],
   's.freeBadge': ['бесплатно', 'free'],
   's.freeNote': [
