@@ -99,7 +99,11 @@ export function buildSystemPrompt(options: PromptOptions): string {
     )
   }
 
-  const others = (options.projects ?? []).filter((project) => project.path !== projectPath)
+  const isSamePath = (a: string, b: string | null): boolean => {
+    if (!b) return false
+    return a.replace(/[\\/]+$/, '').toLowerCase() === b.replace(/[\\/]+$/, '').toLowerCase()
+  }
+  const others = (options.projects ?? []).filter((project) => !isSamePath(project.path, projectPath))
   if (others.length && !options.agentRole) {
     lines.push(
       '',

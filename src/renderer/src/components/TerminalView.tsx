@@ -60,6 +60,13 @@ export function TerminalView({
   const [shellCwd, setShellCwd] = useState(cwd ?? '')
   const [generation, setGeneration] = useState(0)
 
+  useEffect(() => {
+    if (cwd && cwd !== shellCwd) {
+      setShellCwd(cwd)
+      setGeneration((value) => value + 1)
+    }
+  }, [cwd, shellCwd])
+
   const fit = useCallback((): void => {
     const term = termRef.current
     const fitAddon = fitRef.current
@@ -156,7 +163,7 @@ export function TerminalView({
       termRef.current = null
       fitRef.current = null
     }
-  }, [generation])
+  }, [generation, compact])
 
   useEffect(() => {
     if (!active) return
@@ -172,7 +179,7 @@ export function TerminalView({
       if (termRef.current) termRef.current.options.theme = readTheme()
     }
     const observer = new MutationObserver(update)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-accent'] })
     return () => observer.disconnect()
   }, [])
 

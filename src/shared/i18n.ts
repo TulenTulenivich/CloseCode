@@ -1,6 +1,9 @@
 export type Lang = 'ru' | 'en'
 
 const entries = {
+  'c.copy': ['Копировать', 'Copy'],
+  'c.copied': ['Скопировано', 'Copied'],
+  'chat.exportJson': ['Экспорт в JSON', 'Export to JSON'],
   'chrome.settings': ['Настройки', 'Settings'],
   'chrome.api': ['{n} API', '{n} API'],
   'chrome.apiKey': ['API-ключ', 'API key'],

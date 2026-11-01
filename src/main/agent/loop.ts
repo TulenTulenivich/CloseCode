@@ -45,6 +45,7 @@ export interface AgentRunOptions {
   onProjectSwitch?: (absolutePath: string) => void
   onProgress?: () => void
   onAssistantTurn?: (message: ChatMessage) => void
+  onUserTurnAttached?: (message: ChatMessage) => void
   compactThreshold?: number
   parentCallId?: string | null
   agentName?: string | null
@@ -198,21 +199,34 @@ async function delegate(
     for (const call of outcome.toolCalls) {
       if (options.signal.aborted) throw abortError()
       let args: Record<string, unknown> = {}
+      let invalidArgs = false
       try {
         const parsed = JSON.parse(call.arguments || '{}') as unknown
         if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
           args = parsed as Record<string, unknown>
+        } else {
+          invalidArgs = true
         }
       } catch {
-        args = {}
+        invalidArgs = true
       }
       emit({ type: 'tool-start', id: call.id, name: call.name, args })
-      const result = await runTool(call.name, args, contextFor(sub))
+      const result = invalidArgs
+        ? { ok: false, content: 'Invalid tool arguments: expected a JSON object.', detail: tr('e.badSettings') }
+        : await runTool(call.name, args, contextFor(sub))
       messages.push({ role: 'tool', toolCallId: call.id, content: result.content })
       emit({ type: 'tool-end', id: call.id, ok: result.ok, detail: result.detail })
     }
   }
 
+  if (!report && messages.length > 1) {
+    const findings = messages
+      .filter((m) => m.role === 'tool')
+      .slice(-3)
+      .map((m) => m.content)
+      .join('\n')
+    if (findings) report = findings
+  }
   return report.slice(0, SUBAGENT_REPORT_CHARS) || '(no findings)'
 }
 
@@ -223,6 +237,9 @@ function contextFor(options: AgentRunOptions): ToolContext {
     allowWrite: false,
     grantRootFor: options.grantRootFor,
     grant: options.grant,
+    projects: options.projects,
+    image: options.image,
+    screen: options.screen,
     requestApproval: async (input) => {
       const request: ApprovalRequest = { id: randomUUID(), ...input }
       return options.requestApproval(request)
@@ -236,7 +253,8 @@ export async function runAgent(options: AgentRunOptions): Promise<void> {
   const { signal } = options
   let overflowRetries = 0
 
-  for (let round = 0; round < MAX_ROUNDS; round++) {
+  let round = 0
+  while (round < MAX_ROUNDS) {
     if (signal.aborted) throw abortError()
     await makeRoom(options, options.messages, options.system, options.emit, false)
 
@@ -275,6 +293,7 @@ export async function runAgent(options: AgentRunOptions): Promise<void> {
       await makeRoom(options, options.messages, options.system, options.emit, true)
       continue
     }
+    round++
 
     const turn: ChatMessage = {
       role: 'assistant',
@@ -346,11 +365,13 @@ export async function runAgent(options: AgentRunOptions): Promise<void> {
         content: outcome.content
       })
       if (outcome.attach?.length) {
-        options.messages.push({
+        const attachTurn: ChatMessage = {
           role: 'user',
           content: 'The picture the tool captured is attached to this message.',
           images: outcome.attach
-        })
+        }
+        options.messages.push(attachTurn)
+        options.onUserTurnAttached?.(attachTurn)
       }
       options.emit({
         type: 'tool-end',

@@ -159,14 +159,18 @@ function samePath(a: string, b: string): boolean {
 }
 
 export function isPathUnder(root: string, target: string): boolean {
-  const resolvedRoot = path.resolve(root).replace(/[\\/]+$/, '')
+  const resolvedRoot = path.resolve(root)
+  const strippedRoot = resolvedRoot.replace(/[\\/]+$/, '')
+  const effectiveRoot = strippedRoot.endsWith(':') ? `${strippedRoot}\\` : strippedRoot
   const resolvedTarget = path.resolve(target)
   if (process.platform === 'win32') {
-    const base = resolvedRoot.toLowerCase()
+    const base = effectiveRoot.toLowerCase()
     const probe = resolvedTarget.toLowerCase()
-    return probe === base || probe.startsWith(base + path.sep)
+    if (probe === base) return true
+    const prefix = base.endsWith(path.sep) ? base : base + path.sep
+    return probe.startsWith(prefix)
   }
-  const rel = path.relative(resolvedRoot, resolvedTarget)
+  const rel = path.relative(effectiveRoot, resolvedTarget)
   return rel === '' || (!!rel && !rel.startsWith('..') && !path.isAbsolute(rel))
 }
 
@@ -415,9 +419,15 @@ function persist(settings: StoredSettings): void {
   const temp = `${file}.tmp`
   try {
     fs.writeFileSync(temp, json, { encoding: 'utf8', mode: 0o600 })
-    fs.renameSync(temp, file)
+    try {
+      fs.renameSync(temp, file)
+    } catch {
+      // Windows rename over existing file can throw EPERM/EBUSY
+      fs.copyFileSync(temp, file)
+      fs.unlinkSync(temp)
+    }
   } catch {
-    fs.writeFileSync(file, json, 'utf8')
+    fs.writeFileSync(file, json, { encoding: 'utf8', mode: 0o600 })
     try {
       fs.unlinkSync(temp)
     } catch {
@@ -533,7 +543,7 @@ function cleanBaseUrl(value: unknown): string {
   try {
     new URL(trimmed)
   } catch {
-    return trimmed
+    throw new Error(tr('e.badBaseUrlValue', { value: trimmed }))
   }
   return trimmed
 }

@@ -127,7 +127,7 @@ export function Composer({
 
   function onPaste(event: ReactClipboardEvent<HTMLTextAreaElement>): void {
     const files = Array.from(event.clipboardData.items)
-      .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+      .filter((item) => item.kind === 'file')
       .map((item) => item.getAsFile())
       .filter((file): file is File => Boolean(file))
     if (!files.length) return
