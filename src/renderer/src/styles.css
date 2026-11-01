@@ -1,9 +1,7 @@
-/* ---------- Theme tokens ---------- */
 
 :root {
   color-scheme: dark;
 
-  /* Accent palette — base swaps with [data-accent], derived shades follow. */
   --accent-base: #aeb4c0;
   --accent: var(--accent-base);
   --accent-strong: color-mix(in srgb, var(--accent-base) 76%, #000);
@@ -30,7 +28,6 @@
   --heat-3: color-mix(in srgb, var(--accent) 70%, transparent);
   --heat-4: var(--accent);
 
-  /* Graphite surfaces (default) — neutral dark grey, flat. */
   --bg: #1d1d20;
   --panel: #242428;
   --panel-2: #29292e;
@@ -252,7 +249,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* The frameless window is transparent; the root paints the rounded frame. */
 #root {
   background: var(--bg);
   border-radius: var(--window-radius);
@@ -349,7 +345,6 @@ button {
   background: var(--bg);
 }
 
-/* ---------- Window chrome ---------- */
 
 .app-chrome {
   height: 46px;
@@ -430,7 +425,6 @@ button {
   flex: none;
 }
 
-/* ---------- Custom window controls ---------- */
 
 .window-controls {
   display: flex;
@@ -488,7 +482,6 @@ button {
   border-radius: 6px;
 }
 
-/* ---------- Edge resize handles ---------- */
 
 .resize-layer {
   position: fixed;
@@ -674,7 +667,6 @@ button {
   background: var(--red-soft);
 }
 
-/* ---------- Shell ---------- */
 
 .app-body {
   flex: 1;
@@ -690,7 +682,6 @@ button {
   background: var(--bg);
 }
 
-/* ---------- Sidebar ---------- */
 
 .sidebar {
   width: 252px;
@@ -739,7 +730,6 @@ button {
   gap: 8px;
 }
 
-/* ---------- Activity heatmap ---------- */
 
 .heatmap {
   --cell: 11px;
@@ -893,9 +883,7 @@ button {
   --cell: 10px;
 }
 
-/* ---------- Task header ---------- */
 
-/* ---------- Chat ---------- */
 
 .chat-scroll {
   flex: 1;
@@ -1209,7 +1197,6 @@ button {
   }
 }
 
-/* ---------- Tool groups ---------- */
 
 .tool-group {
   display: flex;
@@ -1349,7 +1336,6 @@ button {
   max-width: 340px;
 }
 
-/* ---------- Compaction divider ---------- */
 
 .compaction-row {
   display: flex;
@@ -1430,7 +1416,6 @@ button {
   }
 }
 
-/* ---------- Status rows ---------- */
 
 .notice-row {
   display: flex;
@@ -1542,7 +1527,6 @@ button {
   }
 }
 
-/* ---------- Welcome ---------- */
 
 .welcome {
   flex: 1;
@@ -1574,7 +1558,6 @@ button {
   }
 }
 
-/* Welcome artwork — a drawn session schematic, no raster assets. */
 
 .welcome-art {
   position: relative;
@@ -2051,9 +2034,7 @@ button {
   flex: none;
 }
 
-/* ---------- Composer ---------- */
 
-/* ---------- Agent question card ---------- */
 
 .ask {
   flex: none;
@@ -2567,7 +2548,6 @@ button {
   margin-left: 1px;
 }
 
-/* ---------- Model picker ---------- */
 
 .model-picker {
   position: relative;
@@ -2826,7 +2806,6 @@ button {
   color: var(--accent);
 }
 
-/* ---------- Context meter ---------- */
 
 .context-meter {
   position: relative;
@@ -3032,7 +3011,6 @@ button {
   cursor: default;
 }
 
-/* ---------- Brand marks ---------- */
 
 .brand-logo {
   display: inline-flex;
@@ -3051,7 +3029,6 @@ button {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
 }
 
-/* Near-black marks lift toward the text colour so they stay legible on dark themes. */
 .brand-logo.ink {
   color: color-mix(in srgb, var(--brand-color) 42%, var(--text-strong));
 }
@@ -3064,7 +3041,6 @@ button {
   color: color-mix(in srgb, var(--brand-color) 52%, var(--text-strong));
 }
 
-/* ---------- Modals ---------- */
 
 .overlay {
   position: fixed;
@@ -3464,7 +3440,6 @@ textarea.input {
   color: var(--muted-2);
 }
 
-/* ---------- Diff approval ---------- */
 
 .approval-modal {
   width: min(940px, 94vw);
@@ -3629,7 +3604,6 @@ textarea.input {
   color: var(--muted);
 }
 
-/* ---------- Toast ---------- */
 
 .toast {
   position: fixed;
@@ -3677,7 +3651,6 @@ textarea.input {
   flex: none;
 }
 
-/* ---------- Settings screen ---------- */
 
 .settings-overlay {
   padding: 24px;
@@ -4156,7 +4129,6 @@ textarea.input {
   }
 }
 
-/* ---------- Segmented controls ---------- */
 
 .segmented {
   display: inline-flex;
@@ -4206,7 +4178,6 @@ textarea.input {
   flex: none;
 }
 
-/* ---------- Model load meter ---------- */
 
 .load-meter {
   position: relative;
@@ -4314,7 +4285,6 @@ textarea.input {
   color: var(--muted-2);
 }
 
-/* ---------- Nested tools and subagents ---------- */
 
 .tool-nested {
   margin-left: 14px;
@@ -4339,7 +4309,6 @@ textarea.input {
   color: var(--accent);
 }
 
-/* ---------- Outside-access accents ---------- */
 
 .approval-file-icon.outside {
   background: var(--yellow-soft);
@@ -4362,7 +4331,6 @@ textarea.input {
   color: var(--yellow);
 }
 
-/* ---------- Sidebar project rows ---------- */
 
 .side-head-btn {
   display: inline-flex;
@@ -4408,7 +4376,6 @@ textarea.input {
   background: var(--heat-0);
 }
 
-/* ---------- Motion ---------- */
 
 @keyframes fadeIn {
   from {
@@ -4426,7 +4393,6 @@ textarea.input {
   }
 }
 
-/* ---------- Responsive ---------- */
 
 @media (max-width: 1180px) {
   .sidebar {
@@ -4592,7 +4558,6 @@ textarea.input {
   }
 }
 
-/* ---------- Generated images ---------- */
 
 .image-row {
   display: flex;
@@ -4852,7 +4817,6 @@ textarea.input {
 }
 
 
-/* ---------- Sidebar: projects, private mode, security ---------- */
 
 .sidebar-top {
   padding: 12px 12px 8px;
@@ -5300,7 +5264,6 @@ textarea.input {
   color: var(--muted-2);
 }
 
-/* ---------- Seasonal heatmap ---------- */
 
 .heatmap.side.seasonal {
   gap: 8px;
@@ -5410,7 +5373,6 @@ textarea.input {
   --cell: 8px;
 }
 
-/* ---------- Run strip above the composer ---------- */
 
 .run-strip {
   display: inline-flex;
@@ -5523,7 +5485,6 @@ textarea.input {
   height: 10px;
 }
 
-/* ---------- Effort picker ---------- */
 
 .effort-picker {
   position: relative;
@@ -5662,7 +5623,6 @@ textarea.input {
   color: var(--muted-2);
 }
 
-/* ---------- Settings: appearance and behavior ---------- */
 
 .theme-grid {
   display: grid;
@@ -6032,7 +5992,6 @@ textarea.input {
   color: var(--muted-2);
 }
 
-/* ---------- Second opinion dialog ---------- */
 
 .opinion-panel {
   width: min(680px, 94vw);
@@ -6120,7 +6079,6 @@ textarea.input {
   line-height: 1.5;
 }
 
-/* ---------- Project tree drawer ---------- */
 
 .tree-overlay {
   justify-content: flex-end;
@@ -6268,7 +6226,6 @@ textarea.input {
   line-height: 1.45;
 }
 
-/* ---------- Density ---------- */
 
 :root[data-density='compact'] .sidebar {
   width: 236px;
@@ -6330,7 +6287,6 @@ textarea.input {
   }
 }
 
-/* ---------- Window layout picker ---------- */
 
 .mode-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -6471,7 +6427,6 @@ textarea.input {
   padding-top: 1px;
 }
 
-/* ---------- Mini terminal ---------- */
 
 .app[data-mode='terminal'] {
   --term-surface: color-mix(in srgb, var(--panel) 66%, transparent);
@@ -7380,7 +7335,6 @@ textarea.input {
   }
 }
 
-/* ---------- Overlays inside the mini terminal ---------- */
 
 .app[data-mode='terminal'] .overlay {
   padding: 6px;
@@ -7484,7 +7438,6 @@ textarea.input {
   max-height: 40vh;
 }
 
-/* ---------- Motion polish ---------- */
 
 @keyframes rowIn {
   from {
@@ -7606,7 +7559,6 @@ textarea.input {
   box-shadow: 0 0 0 3px var(--live-glow);
 }
 
-/* ---------- Real shell (xterm + ConPTY) ---------- */
 
 .shell-view {
   flex: 1;
@@ -7752,7 +7704,6 @@ textarea.input {
 
 
 
-/* ---------- Calm motion ---------- */
 
 :root[data-motion='calm'] *,
 :root[data-motion='calm'] *::before,

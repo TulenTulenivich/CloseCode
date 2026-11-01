@@ -51,7 +51,6 @@ const IMAGE_TYPES = /^image\/(png|jpeg|webp|gif)$/i
 const NON_TEXT_FILE =
   /^(image|video|audio|font)\/|application\/(pdf|zip|x-zip|x-7z|x-rar|octet-stream|msword|vnd)/
 
-/** Shrinks a photo to a vision-friendly size so history and IPC stay light. */
 async function prepareImage(file: File): Promise<{ dataUrl: string; mime: string }> {
   const bitmap = await createImageBitmap(file)
   try {
@@ -128,7 +127,6 @@ function finishCompaction(
   )
 }
 
-/** Stored turns become readable chat rows; internal ids stay stable per project. */
 function toChatItems(messages: RestoredMessage[]): ChatItem[] {
   return messages.map((message) => {
     if (message.role === 'compaction') {
@@ -200,11 +198,9 @@ export default function App(): ReactNode {
     try {
       setContext(await window.closecode.getContext())
     } catch {
-      // Context metering is optional; the rest of the UI keeps working.
     }
   }, [])
 
-  /** Every project owns its transcript, so switching reloads the stored conversation. */
   const hydrateProject = useCallback(async (): Promise<void> => {
     atBottomRef.current = true
     try {
@@ -388,7 +384,6 @@ export default function App(): ReactNode {
           setTitle(event.title)
           break
         case 'project':
-          // The agent switched projects: reload the settings view and that project's transcript.
           window.closecode
             .getSettings()
             .then(applyView)
@@ -440,7 +435,6 @@ export default function App(): ReactNode {
           setCompacting(false)
           setApproval(null)
           setQuestion(null)
-          // Per-project message counts change with every finished run.
           window.closecode
             .getSettings()
             .then(applyView)
@@ -466,15 +460,12 @@ export default function App(): ReactNode {
       }
     })
     return unsubscribe
-    // The handler closes over `t`, so it re-subscribes when the language changes.
   }, [lang, applyView])
 
   useEffect(() => {
     const element = scrollRef.current
     if (!element) return
     if (!items.length) {
-      // The welcome screen is taller than the viewport, so pin it to the top
-      // instead of scrolling its hero out of sight after a project switch.
       element.scrollTop = 0
       atBottomRef.current = true
       return
@@ -618,7 +609,6 @@ export default function App(): ReactNode {
     try {
       applyView(await window.closecode.setEffort(level))
     } catch {
-      // The local chip already reflects the choice; persisting is best effort.
     }
   }
 
@@ -794,13 +784,11 @@ export default function App(): ReactNode {
     void window.closecode
       .respondApproval(request.id, answer)
       .then(async () => {
-        // "Always" silently adds an allowed root, so pick it up without a restart.
         if (answer === 'always') applyView(await window.closecode.getSettings())
       })
       .catch((error: unknown) => setToast(errorText(error)))
   }
 
-  /** Replies to a paused ask_user call and keeps the answer in the transcript. */
   function answerQuestion(answer: string): void {
     const current = question
     if (!current) return

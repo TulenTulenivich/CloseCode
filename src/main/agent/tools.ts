@@ -242,14 +242,12 @@ export const readOnlyToolNames = new Set(['list_files', 'read_file', 'search_fil
 
 export interface QuestionInput {
   question: string
-  /** Tap-able answers, already trimmed and capped. */
   options: string[]
   hint?: string
 }
 
 export interface ToolApprovalInput {
   scope: ApprovalScope
-  /** Path relative to the project, or absolute when it is outside of it. */
   path: string
   absolutePath: string
   oldContent: string | null
@@ -258,7 +256,6 @@ export interface ToolApprovalInput {
 }
 
 export interface ImageCapability {
-  /** Image models configured for the active provider. */
   models: string[]
   generate: (input: {
     model: string
@@ -277,24 +274,18 @@ export interface ScreenShotResult {
 }
 
 export interface ScreenCapability {
-  /** Grabs one display; the index is clamped to what the user actually has. */
   capture: (display: number) => Promise<ScreenShotResult>
-  /** Writes the picture into the app folder, returns its absolute path. Nothing lands in the project. */
   save: (buffer: Buffer, display: number) => string
 }
 
 export interface ToolContext {
   root: string | null
-  /** Deepest permanently granted folder containing the path, or null. */
   grantRootFor: (absolutePath: string) => string | null
   requestApproval: (input: ToolApprovalInput) => Promise<ApprovalAnswer>
-  /** Only the top-level run of the desktop app can talk back to the user. */
   requestQuestion?: (question: QuestionInput) => Promise<string>
   grant: (absolutePath: string) => void
-  /** Plan mode blocks every write. */
   allowWrite: boolean
   projectPath: string | null
-  /** Projects the user registered; absent for delegated runs, which cannot switch projects. */
   projects?: ProjectRef[]
   image?: ImageCapability
   screen?: ScreenCapability
@@ -326,9 +317,7 @@ export interface ToolOutcome {
   detail: string
   image?: ToolImage
   edit?: ToolEdit
-  /** Pictures the model should see, sent as the next message of the run. */
   attach?: MessageImage[]
-  /** Absolute folder the app switches to once the answer is finished. */
   projectSwitch?: string
 }
 
@@ -337,7 +326,6 @@ function splitLines(text: string | null): string[] {
   return text.split(/\r?\n/)
 }
 
-/** Line-level added/removed counts for the run status strip. */
 export function diffStats(
   oldContent: string | null,
   newContent: string
@@ -372,7 +360,6 @@ function normalizeRelative(root: string, absolute: string): string {
   return rel.split(path.sep).join('/') || '.'
 }
 
-/** Symlink guard: the deepest existing ancestor must stay inside one of the allowed bases. */
 function assertRealPathInside(bases: string[], target: string): void {
   if (!bases.length) return
   let probe = target
@@ -402,15 +389,10 @@ function assertRealPathInside(bases: string[], target: string): void {
 
 interface Located {
   absolute: string
-  /** Display path: relative to the project when inside, absolute otherwise. */
   display: string
   outside: boolean
 }
 
-/**
- * Resolves a tool path. Anything outside the project needs either a stored grant
- * or a fresh approval, so the agent can never silently touch a foreign folder.
- */
 function locate(context: ToolContext, rawPath: unknown, scope: ApprovalScope): Located {
   const root = requireRoot(context)
   if (typeof rawPath !== 'string' || !rawPath.trim()) throw new Error(tr('e.pathRequired'))
@@ -533,7 +515,6 @@ async function listFiles(
 
 const TREE_ENTRIES = 300
 
-/** One level of a project folder for the file tree panel, with the same ignore rules as list_files. */
 export function projectTree(root: string, relative: string | undefined): TreeResult {
   const base = path.resolve(root)
   const target = path.resolve(base, relative || '.')
@@ -713,7 +694,6 @@ async function writeFile(args: Record<string, unknown>, context: ToolContext): P
       detail: tr('e.readOnly')
     }
   }
-  // An outside path is not confirmed twice: the diff approval below also grants it.
   let target: Located
   try {
     target = locate(context, args.path, 'write-outside')
@@ -854,7 +834,6 @@ async function generateImageFile(
     ? normalizeImagePath(requestedPath, mime)
     : `images/${slugForPrompt(prompt)}-${Date.now().toString(36)}.${imageExtension(mime)}`
 
-  // An outside path is confirmed once, by the image preview below.
   let target: Located
   try {
     target = locate(context, rawPath, 'image-outside')
@@ -1052,7 +1031,6 @@ async function openProject(
     }
   }
 
-  // A folder the user never registered becomes the new root, so it needs a fresh grant.
   if (!projects.some((project) => sameFolder(project.path, target))) {
     const answer = await context.requestApproval({
       scope: 'read-outside',

@@ -10,7 +10,6 @@ import {
 let current: Lang = 'ru'
 const listeners = new Set<() => void>()
 
-/** Called whenever the stored language changes so every subscribed component re-renders. */
 export function setRendererLang(lang: Lang): void {
   if (lang === current) return
   current = lang
@@ -48,7 +47,6 @@ export function useT(): RendererTranslator {
   return { lang, t, tc }
 }
 
-/** For strings built outside of a component render, e.g. chat item factories. */
 export function tStatic(key: TranslationKey, vars?: Record<string, string | number>): string {
   return translate(current, key, vars)
 }

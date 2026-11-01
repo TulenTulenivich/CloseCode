@@ -84,22 +84,18 @@ export interface StoredSettings {
   allowedRoots: string[]
   language: Lang
   effort: EffortLevel
-  /** Effort remembered per model id. */
   efforts: Record<string, EffortLevel>
   theme: ThemeId
   accent: AccentId
   density: DensityId
   windowMode: WindowMode
   motion: MotionId
-  /** Interface zoom as a percentage of the native size. */
   uiScale: number
-  /** Reviewer for the second opinion; null means pick one automatically. */
   opinionProviderId: string | null
   opinionModel: string | null
   approvalPolicy: ApprovalPolicy
   compactAt: number
   enabledSkills: string[]
-  /** Guards the one-time seeding of the built-in keyless provider. */
   freeSeeded: boolean
 }
 
@@ -279,7 +275,6 @@ function normalizeStored(raw: unknown): StoredSettings {
       })
     }
   }
-  // v1 stored a single `projectPath`.
   if (typeof data.projectPath === 'string' && data.projectPath.trim()) {
     settings.projects.push({
       path: data.projectPath,
@@ -312,7 +307,6 @@ function normalizeStored(raw: unknown): StoredSettings {
   }
   const storedAccent = accentOf(data.accent)
   if (storedAccent) settings.accent = storedAccent
-  // v4 and v5 defaulted to a light theme and a bright accent, so those installs never saw grey.
   if (!(Number(data.version) >= SETTINGS_VERSION)) {
     settings.theme = 'graphite'
     if (!data.accent || data.accent === 'blue') settings.accent = 'graphite'
@@ -381,7 +375,6 @@ function finalize(settings: StoredSettings): StoredSettings {
   return settings
 }
 
-/** The seeded provider ships a localized name; follow the interface language until the user renames it. */
 function relabelFreeProvider(settings: StoredSettings): void {
   const provider = settings.providers.find((item) => item.id === FREE_PROVIDER_ID)
   if (!provider) return
@@ -406,7 +399,6 @@ function load(): StoredSettings {
     fresh.language = detectSystemLanguage()
     cache = finalize(fresh)
   }
-  // Seeding is written straight away, otherwise a deleted free provider would return on the next start.
   if (!wasSeeded) persist(cache)
   setLanguage(cache.language)
   return cache
@@ -425,7 +417,6 @@ function persist(settings: StoredSettings): void {
     try {
       fs.unlinkSync(temp)
     } catch {
-      // ignore cleanup failure
     }
   }
   cache = settings
@@ -559,7 +550,6 @@ export function getApprovalPolicy(): ApprovalPolicy {
   return load().approvalPolicy
 }
 
-/** Compaction point as a fraction of the active model's context window. */
 export function getCompactRatio(): number {
   const settings = load()
   return clampCompactPercent(settings.compactAt, activeLimit(settings)) / 100
@@ -672,7 +662,6 @@ export function setSecondOpinionSetting(payload: SecondOpinionPayload): Settings
   return getSettingsView()
 }
 
-/** Interface zoom as a factor for webContents. */
 export function getUiScaleFactor(): number {
   return load().uiScale / 100
 }
@@ -733,7 +722,6 @@ export function getAllowedRoots(): string[] {
   return [...load().allowedRoots]
 }
 
-/** Deepest permanently granted folder that contains the path, or null. */
 export function findGrantRoot(absolutePath: string): string | null {
   const target = path.resolve(absolutePath)
   return (

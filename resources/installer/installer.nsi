@@ -1,8 +1,3 @@
-; Standard NSIS setup for CloseCode. scripts/build-installer.mjs generates the
-; payload include and compiles two variants:
-;   WEB_INSTALL  thin loader: app payload + pinned Electron runtime download
-;   otherwise    offline setup with the whole runtime embedded
-
 Unicode true
 SetCompressor /SOLID lzma
 SetCompressorDictSize 64
@@ -181,8 +176,6 @@ Function .onInit
   StrCpy $progressBar 0
   StrCpy $lastPercent 0
   !ifdef WEB_INSTALL
-    ; The runtime download is not part of the payload files, so set the
-    ; section size to the real footprint for the directory page estimate.
     SectionSetSize 0 ${PAYLOAD_KB}
   !endif
 FunctionEnd
@@ -334,7 +327,6 @@ Section "Uninstall"
   !endif
 SectionEnd
 
-; ---------------------------------------------------------------- runtime
 
 !ifdef WEB_INSTALL
 
@@ -411,7 +403,6 @@ Function StartDownload
   StrCpy $runtimeHandle 0
   StrCpy $runtimeThread 0
   ${If} ${FileExists} "$SYSDIR\curl.exe"
-    ; No spaces anywhere, so the child process needs no quoted arguments.
     StrCpy $R0 "$SYSDIR\curl.exe -L --fail --silent --show-error --retry 2 --retry-delay 2 --connect-timeout 20 --output electron-runtime.part $runtimeUrl"
   ${Else}
     Call WriteDownloadScript
@@ -490,8 +481,6 @@ Function WaitDownload
   StrCpy $runtimeHandle 0
 FunctionEnd
 
-; The hash script resolves everything from its own folder, so neither the
-; script nor its arguments carry the (possibly non-ASCII) profile path.
 Function VerifyRuntimeFile
   StrCpy $downloadOk 0
   StrCpy $R6 "electron-runtime.part"
@@ -553,7 +542,6 @@ Function ExtractionPhase
     Return
   ${EndIf}
 
-  ; Keep the two UI languages; drop the rest of the runtime locale packs.
   FindFirst $R1 $R2 "$INSTDIR\locales\*.pak"
   ${Do}
     ${If} $R2 == ""

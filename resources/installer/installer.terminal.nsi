@@ -1,10 +1,4 @@
-﻿; CloseCode custom setup: a terminal-style window instead of the stock NSIS wizard.
-; Compiled by scripts/build-installer.mjs. The payload list is generated into
-; payload.loader.nsh / payload.offline.nsh; define PROTO to compile the UI
-; without payload. WEB_INSTALL builds the thin loader that fetches the pinned
-; Electron runtime archive instead of embedding it.
-
-Unicode true
+﻿Unicode true
 SetCompressor /SOLID lzma
 SetCompressorDictSize 64
 RequestExecutionLevel user
@@ -85,7 +79,6 @@ VIAddVersionKey "LegalCopyright" "MIT"
 
 !addplugindir /x86-unicode "${__FILEDIR__}\plugins\x86-unicode"
 
-; ---------------------------------------------------------------- theme
 
 !define W 720
 !define H 470
@@ -125,10 +118,6 @@ VIAddVersionKey "LegalCopyright" "MIT"
   SetCtlColors ${HANDLE} ${COLOR} "transparent"
 !macroend
 
-; nsDialogs creates labels with WS_EX_TRANSPARENT and stacks each new control
-; at the bottom of the z-order. Opaque layers make the stack paint itself, but
-; only if every control is raised as it is created, so creation order becomes
-; the painting order.
 !macro UiLabelBg HANDLE TEXT X Y WW HH FONT COLOR BG
   ${NSD_CreateLabel} 0 0 0 0 "${TEXT}"
   Pop ${HANDLE}
@@ -168,8 +157,6 @@ VIAddVersionKey "LegalCopyright" "MIT"
   !insertmacro UiHover $hBarFill
 !macroend
 
-; A flat prompt tile instead of a brand bitmap: the window chrome already
-; carries the dots, so the hero only needs a terminal mark and a plain name.
 !macro UiHero TAG
   !insertmacro UiLabelBg $hLogo "" 30 58 48 48 $fTiny ${C_BG} ${C_CARD}
   !insertmacro UiRound $hLogo 48 48 14
@@ -184,7 +171,6 @@ VIAddVersionKey "LegalCopyright" "MIT"
 !macroend
 
 
-; ---------------------------------------------------------------- language
 
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\English.nlf"
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\Russian.nlf"
@@ -322,7 +308,6 @@ LangString L_UN_DONE_HINT ${LANG_RUSSIAN} "настройки и история 
 LangString L_UN_DONE_HINT2 ${LANG_ENGLISH} "settings and history were deleted"
 LangString L_UN_DONE_HINT2 ${LANG_RUSSIAN} "настройки и история удалены"
 
-; ---------------------------------------------------------------- vars
 
 Var hPage
 Var hBorderBg
@@ -433,7 +418,6 @@ Var runtimeExit
 Var downloadOk
 !endif
 
-; ---------------------------------------------------------------- window
 
 Function ApplyRegion
   System::Alloc 16
@@ -480,7 +464,6 @@ Function HideStockButtons
   EnableWindow $0 0
 FunctionEnd
 
-; ---------------------------------------------------------------- page
 
 Function CreateUI
   nsDialogs::Create 1018
@@ -501,11 +484,9 @@ Function CreateUI
   !insertmacro LoadFont $fGlyph -14 400 "Segoe UI"
   !insertmacro LoadFont $fBtn -14 600 "Consolas"
 
-  ; frame + background
   !insertmacro UiLabelBg $hBorderBg "" 0 0 ${W} ${H} $fTiny ${C_BG} ${C_LINE}
   !insertmacro UiLabelBg $hBg "" 1 1 ${W} 468 $fTiny ${C_BG} ${C_BG}
 
-  ; chrome
   !insertmacro UiLabelBg $hChrome "" 1 1 718 39 $fTiny ${C_BG} ${C_CHROME}
   !insertmacro UiLabelBg $hChromeLine "" 1 40 718 1 $fTiny ${C_BG} ${C_LINE}
   !insertmacro UiLabelBg $hDot1 "●" 18 14 12 12 $fGlyph ${C_DOT_R} ${C_CHROME}
@@ -519,10 +500,8 @@ Function CreateUI
   !insertmacro UiLabelBg $hClose "✕" 676 9 26 22 $fGlyph ${C_MUTED} ${C_CHROME}
   !insertmacro UiStyle $hClose 0x101
 
-  ; hero
   !insertmacro UiHero "$(L_TAG) · $(L_CHIP)"
 
-  ; options
   !insertmacro UiLabelBg $hOptLabel "❯ $(L_SEC_OPT)" 30 158 300 18 $fSmall ${C_ACCENT} ${C_BG}
   !insertmacro UiLabelBg $hDestCaption "$(L_DEST)" 30 186 300 14 $fTiny ${C_MUTED} ${C_BG}
   !insertmacro UiLabelBg $hPathOuter "" 30 204 660 38 $fTiny ${C_BG} ${C_LINE}
@@ -554,7 +533,6 @@ Function CreateUI
   !insertmacro UiLabelBg $hBullet3Text "$(L_B3)" 46 376 600 16 $fSmall ${C_MUTED} ${C_BG}
   !insertmacro UiLabelBg $hNote "$(L_NOTE)" 30 396 600 14 $fTiny ${C_DIM} ${C_BG}
 
-  ; progress
   !insertmacro UiLabelBg $hProgLabel "❯ $(L_SEC_PROG)" 30 158 300 18 $fSmall ${C_ACCENT} ${C_BG}
   !insertmacro UiLabelBg $hProgFile "→" 30 186 640 20 $fPath ${C_TEXT} ${C_BG}
   !insertmacro UiStyle $hProgFile 0x4000
@@ -569,7 +547,6 @@ Function CreateUI
   !insertmacro UiStyle $hPct 0x2
   !insertmacro UiLabelBg $hCount "" 30 332 600 16 $fTiny ${C_MUTED} ${C_BG}
 
-  ; done
   !insertmacro UiLabelBg $hDoneBadge "" 30 166 44 44 $fTiny ${C_BG} ${C_ACCENT}
   !insertmacro UiRound $hDoneBadge 44 44 16
   !insertmacro UiLabelBg $hDoneCheck "✓" 30 175 44 28 $fHead ${C_BG} ${C_ACCENT}
@@ -580,7 +557,6 @@ Function CreateUI
   !insertmacro UiStyle $hDonePath 0x8000
   !insertmacro UiLabelBg $hDoneHint "› $(L_DONE_HINT)" 30 286 620 18 $fSmall ${C_MUTED} ${C_BG}
 
-  ; footer
   !insertmacro UiLabelBg $hFootLine "" 30 406 660 1 $fTiny ${C_BG} ${C_LINE}
   !insertmacro UiLabelBg $hFootHint "$(L_FOOT)" 30 422 380 16 $fTiny ${C_MUTED} ${C_BG}
   !insertmacro UiLabelBg $hCancelOuter "" 432 414 96 34 $fTiny ${C_BG} ${C_LINE}
@@ -644,8 +620,6 @@ Function RefreshOptions
   !insertmacro UiHover $hLaunchPre
 FunctionEnd
 
-; Hiding or showing NSD labels uncovers the stock dialog brush, so every
-; state switch has to repaint the page and all of its children.
 Function RepaintPage
   System::Call 'user32::RedrawWindow(p $hPage, p 0, p 0, i 0x0185)'
 FunctionEnd
@@ -827,13 +801,9 @@ Function StepDone
   System::Call 'user32::UpdateWindow(p $hPage)'
 FunctionEnd
 
-; ---------------------------------------------------------------- runtime
 
 !ifdef WEB_INSTALL
 
-; The loader embeds only resources/app.asar* and fetches the official Electron
-; archive. Downloads run through a hidden child process so the custom progress
-; bar keeps repainting while the file grows.
 Function InstallRuntime
   StrCpy $downloadOk 0
   StrCpy $runtimeDir "$LOCALAPPDATA\CloseCode\installer-cache"
@@ -918,7 +888,6 @@ Function StartDownload
   StrCpy $runtimeHandle 0
   StrCpy $runtimeThread 0
   ${If} ${FileExists} "$SYSDIR\curl.exe"
-    ; No spaces anywhere, so the child process needs no quoted arguments.
     StrCpy $R0 "$SYSDIR\curl.exe -L --fail --silent --show-error --retry 2 --retry-delay 2 --connect-timeout 20 --output electron-runtime.part $runtimeUrl"
   ${Else}
     Call WriteDownloadScript
@@ -994,8 +963,6 @@ Function WaitDownload
   StrCpy $runtimeHandle 0
 FunctionEnd
 
-; The hash script resolves everything from its own folder, so neither the
-; script nor its arguments carry the (possibly non-ASCII) profile path.
 Function VerifyRuntimeFile
   StrCpy $downloadOk 0
   StrCpy $R6 "electron-runtime.part"
@@ -1061,7 +1028,6 @@ Function ExtractionPhase
     Return
   ${EndIf}
 
-  ; Keep the two UI languages; drop the rest of the runtime locale packs.
   FindFirst $R1 $R2 "$INSTDIR\locales\*.pak"
   ${Do}
     ${If} $R2 == ""
@@ -1088,7 +1054,6 @@ FunctionEnd
 
 !endif
 
-; ---------------------------------------------------------------- actions
 
 Function OnToggleShortcut
   ${If} $optShortcut == 1
@@ -1119,8 +1084,6 @@ Function OnBrowse
   ${EndIf}
 FunctionEnd
 
-; Quit from a nsDialogs click callback is swallowed by the plugin loop, so the
-; wizard window has to be closed through the regular window message path.
 Function OnCancel
   ${If} $busy == 0
     SendMessage $HWNDPARENT ${WM_CLOSE} 0 0
@@ -1137,8 +1100,6 @@ Function OnMinimize
   System::Call 'user32::ShowWindow(p $HWNDPARENT, i 6)'
 FunctionEnd
 
-; The window is borderless, so the chrome hands the drag over to the system's
-; own move loop instead of tracking mouse deltas by hand.
 Function OnDrag
   System::Call 'user32::ReleaseCapture()'
   SendMessage $HWNDPARENT 0x00A1 2 0
@@ -1182,7 +1143,6 @@ Function OnPrimary
   ${EndIf}
 FunctionEnd
 
-; ---------------------------------------------------------------- install
 
 Function FindOldInstall
   StrCpy $oldDir ""
@@ -1257,7 +1217,6 @@ Function DoInstall
   Call AppendLog
 !endif
 
-  ; PROTO builds simulate the extraction so the UI can be reviewed quickly.
   !ifdef PROTO
     StrCpy $R9 0
     ${For} $R0 1 140
@@ -1312,7 +1271,6 @@ Function DoInstall
   StrCpy $R8 "$(L_LOG_DONE)"
   Call AppendLog
 !ifdef WEB_INSTALL
-  ; The archive is only needed during setup; do not leave ~151 MB in the cache.
   Delete "$runtimeZip"
   RMDir "$runtimeDir"
 !endif
@@ -1351,7 +1309,6 @@ Function .onInit
       Quit
     ${EndIf}
     Call DoInstall
-    ; Quit from .onInit reports 2 unless a success code is set explicitly.
     ${If} $installFailed == 1
       SetErrorLevel 3
     ${Else}
@@ -1364,7 +1321,6 @@ FunctionEnd
 Function .onGUIEnd
 FunctionEnd
 
-; ---------------------------------------------------------------- uninstaller
 
 Function un.ApplyRegion
   System::Alloc 16
@@ -1406,7 +1362,6 @@ Function un.onInit
   StrCpy $state "options"
   StrCpy $optData 0
   StrCpy $silentMode 0
-  ; Uninstallers run from a temp copy, so $EXEDIR is not the install folder.
   StrCpy $installDir "$INSTDIR"
   ${If} ${Silent}
     StrCpy $silentMode 1
@@ -1672,9 +1627,6 @@ Function un.CreateUI
     Abort
   ${EndIf}
   !insertmacro UiPos $hPage 0 0 ${W} ${H}
-  ; The nsDialogs page static (id 1018) covers the whole window and would
-  ; take every click meant for the labels; disabled windows are skipped by
-  ; hit-testing, so the labels underneath receive the mouse instead.
   GetDlgItem $0 $HWNDPARENT 1018
   EnableWindow $0 0
 
@@ -1697,11 +1649,9 @@ Function un.CreateUI
   !insertmacro LoadFont $fGlyph -14 400 "Segoe UI"
   !insertmacro LoadFont $fBtn -14 600 "Consolas"
 
-  ; frame + background
   !insertmacro UiLabelBg $hBorderBg "" 0 0 ${W} ${H} $fTiny ${C_BG} ${C_LINE}
   !insertmacro UiLabelBg $hBg "" 1 1 ${W} 468 $fTiny ${C_BG} ${C_BG}
 
-  ; chrome
   !insertmacro UiLabelBg $hChrome "" 1 1 718 39 $fTiny ${C_BG} ${C_CHROME}
   !insertmacro UiLabelBg $hChromeLine "" 1 40 718 1 $fTiny ${C_BG} ${C_LINE}
   !insertmacro UiLabelBg $hDot1 "●" 18 14 12 12 $fGlyph ${C_DOT_R} ${C_CHROME}
@@ -1715,10 +1665,8 @@ Function un.CreateUI
   !insertmacro UiLabelBg $hClose "✕" 676 9 26 22 $fGlyph ${C_MUTED} ${C_CHROME}
   !insertmacro UiStyle $hClose 0x101
 
-  ; hero
   !insertmacro UiHero "$(L_UN_TAG)"
 
-  ; options
   !insertmacro UiLabelBg $hOptLabel "❯ $(L_UN_SEC)" 30 158 300 18 $fSmall ${C_ACCENT} ${C_BG}
   !insertmacro UiLabelBg $hDestCaption "$(L_DEST)" 30 186 300 14 $fTiny ${C_MUTED} ${C_BG}
   !insertmacro UiLabelBg $hPathOuter "" 30 204 660 38 $fTiny ${C_BG} ${C_LINE}
@@ -1744,7 +1692,6 @@ Function un.CreateUI
   !insertmacro UiLabelBg $hBullet3Text "" 46 376 600 16 $fSmall ${C_MUTED} ${C_BG}
   !insertmacro UiLabelBg $hNote "$(L_UN_NOTE)" 30 396 600 14 $fTiny ${C_DIM} ${C_BG}
 
-  ; progress
   !insertmacro UiLabelBg $hProgLabel "❯ $(L_UN_SEC)" 30 158 300 18 $fSmall ${C_ACCENT} ${C_BG}
   !insertmacro UiLabelBg $hProgFile "→" 30 186 640 20 $fPath ${C_TEXT} ${C_BG}
   !insertmacro UiStyle $hProgFile 0x4000
@@ -1759,7 +1706,6 @@ Function un.CreateUI
   !insertmacro UiStyle $hPct 0x2
   !insertmacro UiLabelBg $hCount "" 30 332 600 16 $fTiny ${C_MUTED} ${C_BG}
 
-  ; done
   !insertmacro UiLabelBg $hDoneBadge "" 30 166 44 44 $fTiny ${C_BG} ${C_ACCENT}
   !insertmacro UiRound $hDoneBadge 44 44 16
   !insertmacro UiLabelBg $hDoneCheck "✓" 30 175 44 28 $fHead ${C_BG} ${C_ACCENT}
@@ -1770,7 +1716,6 @@ Function un.CreateUI
   !insertmacro UiStyle $hDonePath 0x8000
   !insertmacro UiLabelBg $hDoneHint "" 30 286 620 18 $fSmall ${C_MUTED} ${C_BG}
 
-  ; footer
   !insertmacro UiLabelBg $hFootLine "" 30 406 660 1 $fTiny ${C_BG} ${C_LINE}
   !insertmacro UiLabelBg $hFootHint "$(L_FOOT)" 30 422 380 16 $fTiny ${C_MUTED} ${C_BG}
   !insertmacro UiLabelBg $hCancelOuter "" 432 414 96 34 $fTiny ${C_BG} ${C_LINE}

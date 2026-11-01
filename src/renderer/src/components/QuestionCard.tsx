@@ -8,7 +8,6 @@ interface QuestionCardProps {
   onAnswer: (answer: string) => void
 }
 
-/** The ask_user pause: the run waits here until the user taps an answer or types one. */
 export function QuestionCard({ question, onAnswer }: QuestionCardProps): ReactNode {
   const { t } = useT()
   const [draft, setDraft] = useState('')
@@ -25,7 +24,6 @@ export function QuestionCard({ question, onAnswer }: QuestionCardProps): ReactNo
       }
       const index = Number(event.key) - 1
       if (!Number.isInteger(index) || index < 0 || index >= question.options.length) return
-      // A bare digit answers; inside the free-text field it stays a character.
       const target = event.target as HTMLElement | null
       if (target instanceof HTMLInputElement) return
       event.preventDefault()

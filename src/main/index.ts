@@ -97,7 +97,6 @@ let runController: AbortController | null = null
 let terminal: { id: string; pty: IPty } | null = null
 let terminalSeq = 0
 let history: ChatMessage[] = []
-/** Visible chat, kept apart from `history` so compaction cannot erase it from the UI. */
 let transcript: TranscriptEntry[] = []
 let currentTitle = ''
 let privateSession = false
@@ -105,19 +104,16 @@ let loadTimer: NodeJS.Timeout | null = null
 const pendingApprovals = new Map<string, (answer: ApprovalAnswer) => void>()
 const pendingQuestions = new Map<string, (answer: string) => void>()
 const toolNames = new Map<string, string>()
-/** Images written by this session; readable even when they live outside the project. */
 const generatedImages = new Set<string>()
 
 const MAX_ATTACHMENTS = 5
 const MAX_ATTACHMENT_CHARS = 200_000
 const MAX_TOTAL_ATTACHMENT_CHARS = 500_000
 
-/** Electron gives the sharpest grab at this size; the picture is then scaled for the model. */
 const SCREEN_PIXEL_LIMIT = 2560
 const SCREEN_MAX_WIDTH = 1920
 const SCREEN_KEEP = 20
 
-/** One answer may pause on the user this many times before it has to decide itself. */
 const MAX_QUESTIONS_PER_RUN = 3
 
 const WINDOW_SIZES: Record<
@@ -147,7 +143,6 @@ function emitWindowState(): void {
   mainWindow.webContents.send('window:state-changed', windowState())
 }
 
-/** Resizes around the current center and keeps the window inside the display. */
 function fitWindow(width: number, height: number, animate: boolean): void {
   if (!mainWindow || mainWindow.isDestroyed()) return
   const current = mainWindow.getBounds()
@@ -186,7 +181,6 @@ function applyWindowMode(mode: WindowMode): void {
   }
 }
 
-/** Starts one interactive shell per window; terminals are never shared between windows. */
 function startShell(cols: number, rows: number): TerminalSessionInfo {
   stopShell()
   const safeCols = Math.min(400, Math.max(20, Math.round(cols) || 100))
@@ -207,7 +201,6 @@ function startShell(cols: number, rows: number): TerminalSessionInfo {
       ...process.env,
       TERM: 'xterm-256color',
       COLORTERM: 'truecolor',
-      // A packaged Electron must not leak its bootstrap flag into the shell.
       ELECTRON_RUN_AS_NODE: undefined
     }
   })
@@ -234,7 +227,6 @@ function stopShell(): void {
   try {
     current.pty.kill()
   } catch {
-    // The shell may already be gone.
   }
 }
 
@@ -252,7 +244,6 @@ function cleanGeneratedTitle(raw: string): string {  const first = raw
   return title.length > 56 ? `${title.slice(0, 56).trimEnd()}…` : title
 }
 
-/** Names the session from the first request; failures never block the agent. */
 function generateTaskTitle(
   text: string,
   provider: ReturnType<typeof getAgentProvider>,
@@ -320,10 +311,6 @@ interface ScreenShot {
   displays: number
 }
 
-/**
- * Grabs one display through Electron's capture API. The picture is clamped so a 4K screen
- * still fits in a provider request, and it never leaves the machine.
- */
 async function captureDisplay(display: number): Promise<ScreenShot> {
   const displays = screen.getAllDisplays()
   if (!displays.length) throw new Error(tr('e.noScreen'))
@@ -372,7 +359,6 @@ function saveScreenshot(buffer: Buffer, display: number): string {
   return file
 }
 
-/** Screenshots pile up fast, so only the newest ones stay on disk. */
 function pruneScreenshots(dir: string): void {
   try {
     const files = fs
@@ -384,11 +370,9 @@ function pruneScreenshots(dir: string): void {
       try {
         fs.rmSync(path.join(dir, file.name))
       } catch {
-        // A locked file is not worth failing the capture over.
       }
     }
   } catch {
-    // The folder was just created; nothing to prune.
   }
 }
 
@@ -509,7 +493,6 @@ function cancelPendingApprovals(): void {
   pendingApprovals.clear()
 }
 
-/** An unfinished question never blocks the stop button: the run gets "no answer" and ends. */
 function cancelPendingQuestions(): void {
   for (const [id, resolve] of pendingQuestions) {
     resolve('')
@@ -518,7 +501,6 @@ function cancelPendingQuestions(): void {
   pendingQuestions.clear()
 }
 
-/** Messages the agent injects to keep a compacted transcript valid; never shown as chat. */
 function isSyntheticTurn(text: string): boolean {
   return (
     text === tr('sys.trimmed') ||
@@ -528,7 +510,6 @@ function isSyntheticTurn(text: string): boolean {
   )
 }
 
-/** Sessions written before the display transcript existed are rebuilt from model history. */
 function transcriptFromHistory(messages: ChatMessage[]): TranscriptEntry[] {
   const entries: TranscriptEntry[] = []
   for (const message of messages) {
@@ -550,14 +531,12 @@ function loadProjectTranscript(projectPath: string | null): TranscriptEntry[] {
   return stored ?? transcriptFromHistory(history)
 }
 
-/** Compaction markers belong to the visible chat even though the model transcript shrinks. */
 function recordCompaction(event: AgentEvent): void {
   if (event.type === 'compact-end' && !privateSession) {
     transcript.push({ role: 'compaction', ok: event.ok, detail: event.detail })
   }
 }
 
-/** Text the user actually saw during a run; tool traffic stays in model history only. */
 function appendAssistantTurns(messages: ChatMessage[]): void {
   if (privateSession) return
   for (const message of messages) {
@@ -579,10 +558,6 @@ function switchProject(view: ReturnType<typeof getSettingsView>): void {
   emitContext()
 }
 
-/**
- * Applies the switch an agent asked for with open_project. Runs after the answer is saved,
- * so the conversation stays in the project it started in.
- */
 function applyPendingProject(target: string): void {
   let view: ReturnType<typeof getSettingsView>
   try {
@@ -704,7 +679,6 @@ function createWindow(): void {
 const SENSITIVE_PATHS =
   /(^|\/)(package(-lock)?\.json|pnpm-lock\.yaml|yarn\.lock|tsconfig[^/]*\.json|electron\.vite\.config\.[^/]+|vite\.config\.[^/]+|\.env[^/]*|\.git\/|\.github\/|Dockerfile|docker-compose[^/]*|src\/main\/|src\/preload\/|scripts\/)/i
 
-/** New files, configs and large rewrites stay manual even under the smart policy. */
 function isImportantChange(request: ApprovalRequest): boolean {
   if (request.scope !== 'write') return true
   if (request.oldContent === null) return true
@@ -714,7 +688,6 @@ function isImportantChange(request: ApprovalRequest): boolean {
   return stats.added + stats.removed > 60
 }
 
-/** Answers that need no dialog. Outside-project access never lands here. */
 function autoApprovalFor(request: ApprovalRequest): ApprovalAnswer | null {
   const policy = getApprovalPolicy()
   if (policy === 'always') return null
@@ -784,7 +757,6 @@ async function buildSecondOpinion(): Promise<SecondOpinionResult> {
         messages: [{ role: 'user', content: prompt }],
         tools: [],
         signal: controller.signal,
-        // Reviewers spend most of the budget on thinking; 2048 used to cut them off before any answer.
         maxTokens: OPINION_MAX_TOKENS,
         temperature: 0.2,
         reasoningEffort: reasoningEffortFor(model, 'low'),
@@ -909,7 +881,6 @@ function registerIpc(): void {
     try {
       terminal.pty.resize(safeCols, safeRows)
     } catch {
-      // ConPTY rejects resizes after the child exits.
     }
   })
 
@@ -933,7 +904,6 @@ function registerIpc(): void {
     }
     const apiKey = resolveApiKeyForRequest(payload)
     const models = await fetchAvailableModels(payload.kind, payload.baseUrl, apiKey)
-    // The keyless gateway lists hundreds of billed ids; only its free pool belongs to the provider.
     return isFreeProvider({ id: payload.providerId ?? '', baseUrl: payload.baseUrl })
       ? filterFreeModels(models)
       : models
@@ -1132,8 +1102,6 @@ function registerIpc(): void {
     runController = controller
     startLoadTicker()
 
-    // The user row is already on screen, so the display transcript records it first —
-    // a compaction divider then lands after it, exactly like in the live chat.
     appendUserTurn(userContent, images)
 
     try {
@@ -1191,9 +1159,7 @@ function registerIpc(): void {
       )
     }
 
-    // open_project defers its switch: the answer must finish in the project it started in.
     let pendingProject = ''
-    // ask_user waits on a human, so a single answer cannot turn into an interrogation.
     let questionsLeft = MAX_QUESTIONS_PER_RUN
 
     void runAgent({

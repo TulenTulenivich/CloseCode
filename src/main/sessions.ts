@@ -8,7 +8,6 @@ const MAX_STORED_MESSAGES = 200
 const MAX_TRANSCRIPT_ENTRIES = 400
 const MAX_TITLE_CHARS = 80
 
-/** What the chat window shows; independent from the model transcript that compaction rewrites. */
 export type TranscriptEntry =
   | { role: 'user'; content: string; images?: MessageImage[] }
   | { role: 'assistant'; content: string }
@@ -65,7 +64,6 @@ function writeSession(
     )
     titleCache.set(file, cleanTitle(title))
   } catch {
-    // History persistence must never break a run.
   }
 }
 
@@ -143,7 +141,6 @@ function sanitizeTranscript(raw: unknown): TranscriptEntry[] {
   return result
 }
 
-/** Null means the session predates the transcript and must be rebuilt from model history. */
 export function loadTranscript(projectPath: string | null): TranscriptEntry[] | null {
   if (!projectPath) return null
   const parsed = readFile(projectPath)
@@ -193,7 +190,6 @@ export function clearHistory(projectPath: string | null): void {
   try {
     fs.unlinkSync(fileFor(projectPath))
   } catch {
-    // nothing stored yet
   }
 }
 

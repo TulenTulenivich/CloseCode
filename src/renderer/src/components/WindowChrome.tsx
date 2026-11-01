@@ -5,7 +5,6 @@ import { MaximizeIcon, MinimizeIcon, RestoreIcon, XIcon } from './Icons'
 
 const DIRECTIONS = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const
 
-/** Keeps the root corner radius in sync with the native maximize state. */
 export function WindowControls(): ReactNode {
   const { t } = useT()
   const [maximized, setMaximized] = useState(false)
@@ -69,7 +68,6 @@ export function WindowControls(): ReactNode {
   )
 }
 
-/** Native edge resizing because transparent frameless windows cannot use the OS grips. */
 export function WindowResizeHandles(): ReactNode {
   function start(event: ReactPointerEvent<HTMLElement>, direction: (typeof DIRECTIONS)[number]): void {
     if (event.button !== 0) return

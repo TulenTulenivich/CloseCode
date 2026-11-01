@@ -44,7 +44,6 @@ function pngChunk(type, data) {
   return Buffer.concat([length, body, crc])
 }
 
-/** A real 640×480 PNG so the image path exercises magic-byte sniffing. */
 function buildPng(width, height) {
   const header = Buffer.alloc(13)
   header.writeUInt32BE(width, 0)
@@ -90,7 +89,6 @@ fs.writeFileSync(
   JSON.stringify({
     version: 1,
     providers: [],
-    // Skip the built-in free provider so the counts below stay about the providers this script adds.
     freeSeeded: true,
     activeProviderId: null,
     activeModel: null,
@@ -98,7 +96,6 @@ fs.writeFileSync(
   })
 )
 
-// The summary call is recognised by its language-independent system prompt.
 const SUMMARY_MARKER = 'You compress the history of a coding agent conversation'
 
 const requests = []
@@ -178,7 +175,6 @@ const server = http.createServer(async (req, res) => {
       res.end()
       return
     }
-    // A fresh prompt asks for a tool call; a tool result or a repeated turn gets the answer.
     const last = messages[messages.length - 1] ?? {}
     const lastUser = [...messages].reverse().find((message) => message.role === 'user')
     const lastUserText = String(lastUser?.content ?? '')
@@ -333,7 +329,6 @@ async function waitForFile(target) {
   throw new Error(`File was not created: ${target}`)
 }
 
-// Tool rows are collapsed inside a group once the run finishes.
 async function expandToolGroup(page, index = 0) {
   const head = page.locator('.tool-group-head').nth(index)
   await head.waitFor({ timeout: 20000 })
@@ -429,7 +424,6 @@ try {
   await page.getByLabel('Файлы и фото для контекста').setInputFiles(path.join(projectDir, 'README.md'))
   await page.locator('.attach-chip').filter({ hasText: 'README.md' }).waitFor({ timeout: 10000 })
 
-  // Photos can be picked or pasted straight into the composer and are previewed as thumbnails.
   await page.getByLabel('Файлы и фото для контекста').setInputFiles({
     name: 'photo.png',
     mimeType: 'image/png',
@@ -454,7 +448,6 @@ try {
   await page.waitForTimeout(200)
   await page.screenshot({ path: path.join(artifacts, '20-photo-composer.png'), animations: 'disabled' })
 
-  // Per-model thinking levels: GPT-5 exposes exactly the four values its public API accepts.
   await page.locator('.effort-btn').click()
   const effortPopover = page.locator('.effort-popover')
   await effortPopover.waitFor({ timeout: 10000 })
@@ -553,7 +546,6 @@ try {
   )
   assert.equal(titleRequests.length, 1, 'the first turn asks the model for a task title')
 
-  // Second opinion: another model reviews the latest finished answer.
   await page.locator('.run-opinion').click()
   const opinionPanel = page.locator('.opinion-panel')
   await opinionPanel.waitFor({ timeout: 10000 })
@@ -563,7 +555,6 @@ try {
   await page.keyboard.press('Escape')
   await opinionPanel.waitFor({ state: 'detached', timeout: 5000 })
 
-  // Writing outside the project asks for an explicit folder grant.
   const requestsBeforeOutside = chatRequests().length
   await page.getByLabel('Сообщение агенту').fill('Создай файл снаружи проекта')
   await page.getByLabel('Сообщение агенту').press('Enter')
@@ -585,7 +576,6 @@ try {
   )
   await page.locator('.run-opinion').waitFor({ timeout: 20000 })
 
-  // Image generation: preview approval, save into the project and render the image card.
   await page.getByLabel('Сообщение агенту').fill('Нарисуй пейзаж для главной страницы')
   await page.getByLabel('Сообщение агенту').press('Enter')
   const imageDialog = page.getByRole('dialog', { name: 'Сохранение изображения' })
@@ -618,7 +608,6 @@ try {
   assert.equal(imageCall?.body.size, '1024x1024')
   assert.equal(imageCall?.headers.authorization, 'Bearer ui-test-key')
 
-  // Settings read back every change: appearance, behavior, language, projects, grants, skills, agents.
   await page.locator('.app-chrome').getByRole('button', { name: 'Настройки' }).click()
   const prefs = page.getByRole('dialog', { name: 'Настройки', exact: true })
   await prefs.waitFor({ timeout: 10000 })
@@ -712,7 +701,6 @@ try {
   await prefs.getByRole('button', { name: 'Закрыть настройки' }).click()
   await prefs.waitFor({ state: 'detached', timeout: 10000 })
 
-  // Private session keeps future turns out of the project history.
   const privateToggle = page.locator('.private-toggle')
   assert.equal(await privateToggle.getAttribute('aria-checked'), 'false')
   await privateToggle.click()
@@ -745,7 +733,6 @@ try {
   await app.close()
   app = null
 
-  // Relaunch to verify settings, the encrypted key and the skill toggle persist.
   const relaunched = await launchApp()
   app = relaunched.electronApp
   const page2 = relaunched.page
@@ -787,7 +774,6 @@ try {
   await persistedSkill.waitFor({ timeout: 10000 })
   assert.equal(await persistedSkill.getAttribute('aria-checked'), 'true', 'enabled skill survives a restart')
 
-  // Mini terminal: overlays render inside the compact window instead of expanding it.
   await rail(persisted, 'Оформление').click()
   await persisted.getByRole('button', { name: /Мини-терминал/ }).click()
   await page2.waitForFunction(() => document.documentElement.dataset.mode === 'terminal', null, {
@@ -851,7 +837,6 @@ try {
   await page2.waitForFunction(() => document.documentElement.dataset.maximized !== 'true', null, {
     timeout: 10000
   })
-  // The mini terminal opens on a real ConPTY shell backed by xterm.js.
   await page2.locator('.shell-view .xterm').waitFor({ timeout: 15000 })
   await page2.locator('.shell-status-dot.running').waitFor({ timeout: 20000 })
   await page2.locator('.shell-host').click()
@@ -870,7 +855,6 @@ try {
   await app.close()
   app = null
 
-  // The compact window type survives a restart and can be expanded back.
   const terminalBoot = await launchApp()
   app = terminalBoot.electronApp
   const page3 = terminalBoot.page

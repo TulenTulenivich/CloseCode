@@ -44,7 +44,6 @@ function groupItems(items: ChatItem[]): Block[] {
   return blocks
 }
 
-/** Subagent calls are filed under the run_subagent row that spawned them. */
 function childrenByParent(tools: ToolItem[]): Map<string, ToolItem[]> {
   const map = new Map<string, ToolItem[]>()
   for (const tool of tools) {

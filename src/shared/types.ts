@@ -18,7 +18,6 @@ export interface AppearancePayload {
   density: DensityId
   windowMode: WindowMode
   motion: MotionId
-  /** Interface zoom as a percentage; 100 is the native size. */
   uiScale: number
 }
 
@@ -38,7 +37,6 @@ export interface ProviderInfo {
 
 export interface ProviderView extends ProviderInfo {
   hasKey: boolean
-  /** True for the built-in keyless provider. */
   free: boolean
 }
 
@@ -73,28 +71,22 @@ export interface SettingsView {
   activeProviderId: string | null
   activeModel: string | null
   projects: ProjectInfo[]
-  /** Convenience alias of `projects.find(active).path`, null when none. */
   projectPath: string | null
   activeProjectPath: string | null
   allowedRoots: string[]
   language: Lang
-  /** Effort for the active model; every model remembers its own level. */
   effort: EffortLevel
   efforts: Record<string, EffortLevel>
   theme: ThemeId
   accent: AccentId
   density: DensityId
-  /** Full application window or a compact terminal-style window. */
   windowMode: WindowMode
   motion: MotionId
   uiScale: number
-  /** Reviewer for the second opinion; null means pick another connected model automatically. */
   opinionProviderId: string | null
   opinionModel: string | null
   approvalPolicy: ApprovalPolicy
-  /** Percentage of the context window at which history is compacted. */
   compactAt: number
-  /** Lowest allowed percentage for the active model's context window. */
   compactMin: number
   compactMax: number
   skills: SkillInfo[]
@@ -122,7 +114,6 @@ export interface SetActiveModelPayload {
   model: string
 }
 
-/** null providerId selects the reviewer model automatically. */
 export interface SecondOpinionPayload {
   providerId: string | null
   model: string | null
@@ -137,13 +128,11 @@ export interface FetchModelsPayload {
 }
 
 export interface TreePayload {
-  /** Folder relative to the project root; empty or '.' for the root itself. */
   path?: string
 }
 
 export interface TreeEntry {
   name: string
-  /** Slash-separated path relative to the project root. */
   path: string
   dir: boolean
 }
@@ -156,7 +145,6 @@ export interface TreeResult {
 
 export interface ScreenShotView {
   name: string
-  /** Display name the user sees, such as "Экран 1". */
   label: string
   mime: string
   bytes: number
@@ -177,20 +165,16 @@ export interface ApprovalImage {
 export interface ApprovalRequest {
   id: string
   scope: ApprovalScope
-  /** Path relative to the project, or absolute when it is outside of it. */
   path: string
   absolutePath: string
   oldContent: string | null
   newContent: string | null
-  /** Preview for image approvals; the renderer shows it before the file is written. */
   image?: ApprovalImage | null
 }
 
-/** Asked by the ask_user tool: the run pauses until the renderer answers it. */
 export interface UserQuestion {
   id: string
   question: string
-  /** Tap-able answers, at most four; a free-text one is always offered too. */
   options: string[]
   hint?: string
 }
@@ -200,7 +184,6 @@ export interface ChatAttachment {
   size: number
   content: string
   truncated?: boolean
-  /** Image attachments carry a data URL and are sent to vision-capable models. */
   kind?: 'image'
   mime?: string
 }
@@ -267,14 +250,12 @@ export type AgentEvent =
   | { type: 'done'; cancelled?: boolean }
   | { type: 'error'; message: string }
 
-/** A stored conversation turn or marker, replayed into the UI when a project is opened. */
 export interface RestoredMessage {
   id: string
   role: 'user' | 'assistant' | 'compaction'
   text: string
   files: { name: string; size: number }[]
   images?: { name: string; mime: string; dataUrl: string }[]
-  /** Compaction rows keep the outcome so a failed pass stays visible after a restart. */
   ok?: boolean
 }
 
@@ -359,7 +340,6 @@ export interface CloseCodeApi {
   revealPath(path: string): Promise<void>
   readTree(payload: TreePayload): Promise<TreeResult>
   captureScreen(display: number): Promise<ScreenShotView>
-  /** Reads a project or session-generated image as a data URL. */
   readImage(path: string): Promise<string>
   getModelLoad(): Promise<ModelLoad>
   getContext(): Promise<ContextState>
@@ -372,10 +352,8 @@ export interface CloseCodeApi {
   cancel(): Promise<void>
   resetChat(): Promise<void>
   respondApproval(id: string, answer: ApprovalAnswer): Promise<void>
-  /** Sends the user's answer back to the paused ask_user call; an empty string means skipped. */
   answerQuestion(id: string, answer: string): Promise<void>
   getActivity(): Promise<ActivityView>
-  /** Saves the conversation as a Markdown file chosen by the user. */
   exportChat(payload: ExportChatPayload): Promise<string | null>
   onAgentEvent(listener: (event: AgentEvent) => void): () => void
   getWindowState(): Promise<WindowState>
@@ -384,7 +362,6 @@ export interface CloseCodeApi {
   toggleMaximizeWindow(): Promise<WindowState>
   closeWindow(): void
   getWindowBounds(): Promise<WindowBounds>
-  /** Native resize driven by the frameless window edge handles. */
   resizeWindow(bounds: WindowBounds): void
   startTerminal(options: { cols: number; rows: number }): Promise<TerminalSessionInfo>
   writeTerminal(id: string, data: string): void

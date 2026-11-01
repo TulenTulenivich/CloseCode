@@ -13,14 +13,12 @@ interface WelcomeProps {
   onOpenSettings: () => void
 }
 
-/** Turns the newlines embedded in a translated heading into real breaks. */
 function lineBreaks(text: string): ReactNode[] {
   return text.split('\n').flatMap((line, index) =>
     index === 0 ? [line] : [<br key={index} />, line]
   )
 }
 
-/** A static, hand-drawn schematic of a working session — no raster artwork. */
 function WelcomeArt(): ReactNode {
   return (
     <div className="welcome-art" aria-hidden="true">

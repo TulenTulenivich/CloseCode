@@ -418,7 +418,6 @@ export function SettingsScreen({
         if (isImageModel(model)) return false
         const pair = `${provider.id}:${model}`
         const isActive = provider.id === settings.activeProviderId && model === settings.activeModel
-        // The active model cannot review itself, but a stored choice stays listed so the select never lies.
         return !isActive || pair === reviewerValue
       })
       .map((model) => {

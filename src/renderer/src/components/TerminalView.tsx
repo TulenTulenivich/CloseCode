@@ -43,7 +43,6 @@ function readTheme(): Record<string, string> {
   }
 }
 
-/** A real ConPTY-backed PowerShell rendered by xterm.js. */
 export function TerminalView({
   active,
   cwd,
@@ -70,7 +69,6 @@ export function TerminalView({
     try {
       fitAddon.fit()
     } catch {
-      // The host may be between layout passes.
     }
   }, [active])
 
@@ -118,7 +116,6 @@ export function TerminalView({
       try {
         fitAddon.fit()
       } catch {
-        // Ignore a zero-sized host.
       }
       setStatus('starting')
       sessionRef.current = null
@@ -159,8 +156,6 @@ export function TerminalView({
       termRef.current = null
       fitRef.current = null
     }
-    // The session lives for the lifetime of the view; active only gates fitting.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generation])
 
   useEffect(() => {

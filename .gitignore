@@ -5,3 +5,5 @@ dist/
 *.log
 .qoder/
 .artifacts/
+artifacts/
+release-build/

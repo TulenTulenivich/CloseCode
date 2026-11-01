@@ -8,9 +8,6 @@ const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const releaseDir = path.join(appRoot, 'release')
 const cli = path.join(appRoot, 'node_modules', 'electron-builder', 'cli.js')
 
-// Building directly into the workspace can fail on Windows when editors or
-// file indexers hold handles to freshly extracted files, so build in temp
-// and copy only the final installers back.
 const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'closecode-build-'))
 
 const result = spawnSync(process.execPath, [cli, '--win', `-c.directories.output=${outDir}`], {

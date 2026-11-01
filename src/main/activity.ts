@@ -78,7 +78,6 @@ function persist(store: StoredActivity): void {
     fs.writeFileSync(temp, JSON.stringify(store), { encoding: 'utf8', mode: 0o600 })
     fs.renameSync(temp, file)
   } catch {
-    // Activity is cosmetic; losing the file must never break the agent.
   }
 }
 

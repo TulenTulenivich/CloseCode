@@ -32,11 +32,9 @@ function ensureDir(dir: string): void {
   try {
     fs.mkdirSync(dir, { recursive: true })
   } catch {
-    // unreadable userData folder — the list simply stays empty
   }
 }
 
-/** Minimal `key: value` front matter reader — enough for name/description/model. */
 function parseFrontMatter(text: string): { meta: Record<string, string>; body: string } {
   const normalized = text.replace(/^\uFEFF/, '')
   const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(normalized)
@@ -185,7 +183,6 @@ export function enabledSkillBodies(
     .map((skill) => ({ name: skill.name, body: skill.body }))
 }
 
-/** Body of a single skill or agent, looked up by display name (project wins). */
 export function findEntry(
   kind: 'skill' | 'agent',
   name: string,

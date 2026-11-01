@@ -9,7 +9,6 @@ interface ActivityHeatmapProps {
 }
 
 const SEASON_KEYS: TranslationKey[] = ['act.spring', 'act.summer', 'act.autumn', 'act.winter']
-/** March, June, September, December — first month of each season. */
 const SEASON_START_MONTHS = [2, 5, 8, 11]
 const MAX_OFFSET = 3
 const CELLS_PER_MONTH = 42
@@ -44,7 +43,6 @@ function levelOf(score: number, busiest: number): number {
   return Math.max(1, Math.min(4, Math.ceil((score / Math.max(1, busiest)) * 4)))
 }
 
-/** The season currently on screen, anchored at the first month of that season. */
 function seasonStart(today: Date, offset: number): Date {
   const month = today.getMonth()
   let year = today.getFullYear()

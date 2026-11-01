@@ -25,7 +25,6 @@ function isRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
-/** Images are only accepted when their magic bytes look like a real raster image. */
 export function sniffImageMime(buffer: Buffer): string | null {
   if (buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
     return 'image/png'
@@ -93,7 +92,6 @@ function connectionError(url: string, error: unknown): Error {
   try {
     host = new URL(url).host
   } catch {
-    // endpointUrl already validated the URL
   }
   return new Error(tr('e.connect', { host, reason: (error as Error).message }))
 }
@@ -172,7 +170,6 @@ async function requestOpenAiImages(input: ImageRequestInput): Promise<GeneratedI
     n: 1,
     size: input.size || '1024x1024'
   }
-  // gpt-image models reject response_format; DALL-E uses it to return bytes.
   if (/dall-?e/i.test(input.model)) body.response_format = 'b64_json'
 
   let response: Response
@@ -204,10 +201,6 @@ async function requestOpenAiImages(input: ImageRequestInput): Promise<GeneratedI
   return decodeDataUrl(remote) ?? (await downloadImage(remote, input.signal))
 }
 
-/**
- * Asks the provider for one image. OpenAI-compatible providers use the images
- * endpoint; OpenRouter exposes image models through chat completions instead.
- */
 export async function generateImage(input: ImageRequestInput): Promise<GeneratedImage> {
   if (isOpenRouter(input.baseUrl)) return requestOpenRouter(input)
   return requestOpenAiImages(input)

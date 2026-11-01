@@ -150,7 +150,6 @@ interface CompactOptions {
   extraTokens?: number
   force?: boolean
   limit?: number
-  /** Fraction of the window at which compaction starts. */
   threshold?: number
 }
 

@@ -28,8 +28,6 @@ const sseHeaders = {
   Connection: 'keep-alive'
 }
 
-// The summary call is recognised by its language-independent system prompt,
-// so a UI language switch cannot make this mock answer with the wrong turn.
 const SUMMARY_MARKER = 'You compress the history of a coding agent conversation'
 
 function openAiSend(res: http.ServerResponse, payload: unknown): void {
@@ -69,7 +67,6 @@ function openAiToolCall(res: http.ServerResponse, fileName: string): void {
   res.write('data: [DONE]\n\n')
 }
 
-/** A single tool call sent in one delta, used by the project-switch case. */
 function openAiNamedToolCall(
   res: http.ServerResponse,
   name: string,
@@ -106,7 +103,6 @@ function openAiText(res: http.ServerResponse, text: string): void {
 
 const REASONING_ONLY_TEXT = 'Сначала проверяю требование, потом ищу риски в коде.'
 
-/** Some gateways stream the chain of thought as `reasoning` and `reasoning_details`, never as content. */
 function openAiReasoningOnly(res: http.ServerResponse): void {
   openAiSend(res, {
     choices: [{ delta: { role: 'assistant', reasoning: REASONING_ONLY_TEXT.slice(0, 20) } }]
@@ -317,7 +313,6 @@ async function main(): Promise<void> {
   const controller = new AbortController()
 
   try {
-    // --- OpenAI-compatible provider: approve a write ---
     const events: AgentEvent[] = []
     const approvals: ApprovalRequest[] = []
     const messages: ChatMessage[] = [{ role: 'user', content: 'Создай hello.txt (approve)' }]
@@ -375,7 +370,6 @@ async function main(): Promise<void> {
       'tool result is sent back to the model'
     )
 
-    // --- OpenAI-compatible provider: reject a write ---
     const rejectApprovals: ApprovalRequest[] = []
     const rejectMessages: ChatMessage[] = [{ role: 'user', content: 'Создай reject.txt (reject)' }]
     await runAgent({
@@ -395,7 +389,6 @@ async function main(): Promise<void> {
     assert.equal(rejectApprovals.length, 1)
     assert.equal(fs.existsSync(path.join(project, 'reject.txt')), false, 'rejected file was not written')
 
-    // --- Anthropic provider with tool_use streaming ---
     const anthropicEvents: AgentEvent[] = []
     const anthropicApprovals: ApprovalRequest[] = []
     const anthropicMessages: ChatMessage[] = [{ role: 'user', content: 'Запиши файл через Claude' }]
@@ -438,7 +431,6 @@ async function main(): Promise<void> {
     assert.equal(lastTurn.content[0].type, 'tool_result')
     assert.equal(lastTurn.content[0].tool_use_id, 'toolu_test_1')
 
-    // --- Tool sandboxing: foreign folders are reachable only through approval ---
     const readAsks: ToolApprovalInput[] = []
     const outsideRead = await runTool(
       'read_file',
@@ -505,7 +497,6 @@ async function main(): Promise<void> {
     assert.equal(readInside.ok, true)
     assert.match(readInside.content, /export \{\}/)
 
-    // --- Context limits, estimation and automatic compaction ---
     assert.equal(contextLimitForModel('gpt-4o-mini'), 128000)
     assert.equal(contextLimitForModel('claude-sonnet-4'), 200000)
     assert.equal(contextLimitForModel('deepseek-chat'), 128000)
@@ -580,7 +571,6 @@ async function main(): Promise<void> {
       'the summary request includes the truncated transcript'
     )
 
-    // --- The run compacts itself after a context-overflow error and keeps going ---
     const overflowEvents: AgentEvent[] = []
     const overflowMessages: ChatMessage[] = [
       { role: 'user', content: `Длинная задача. ${'Контекст. '.repeat(400)}` }
@@ -608,7 +598,6 @@ async function main(): Promise<void> {
     )
     assert.equal(overflowAttempts, 2, 'the overflowing request is retried once after compaction')
 
-    // --- A tight threshold compacts at the top of a round, before the next request ---
     const thresholdEvents: AgentEvent[] = []
     const thresholdMessages: ChatMessage[] = [{ role: 'user', content: 'Простой вопрос.' }]
     await runAgent({
@@ -629,7 +618,6 @@ async function main(): Promise<void> {
     assert.ok(compactIndex < textIndex, 'compaction happens before the answer keeps streaming')
     assert.match(thresholdMessages[0].content, /Сводка предыдущей части диалога/)
 
-    // --- open_project lists registered folders and defers the switch to the app ---
     const otherProject = path.join(workspace, 'other')
     fs.mkdirSync(otherProject, { recursive: true })
     const switched: string[] = []
@@ -697,7 +685,6 @@ async function main(): Promise<void> {
     assert.equal(refused.ok, false, 'a denied folder never becomes the project root')
     assert.equal(refused.projectSwitch, undefined)
 
-    // --- take_screenshot keeps the png out of the project and hands it back to the model ---
     const shotDir = path.join(workspace, 'shots')
     const png = Buffer.from(
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
@@ -787,7 +774,6 @@ async function main(): Promise<void> {
       'a run with no user channel does not advertise ask_user either'
     )
 
-    // --- ask_user pauses on the user and brings the answer back as the tool result ---
     const askedQuestions: { question: string; options: string[]; hint?: string }[] = []
     const answered = await runTool(
       'ask_user',

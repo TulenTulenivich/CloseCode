@@ -36,23 +36,16 @@ export interface AgentRunOptions {
   effort: EffortLevel
   emit: (event: AgentEvent) => void
   requestApproval: (request: ApprovalRequest) => Promise<ApprovalAnswer>
-  /** Set for the main run: ask_user shows the question and waits for the answer. */
   requestQuestion?: (question: UserQuestion) => Promise<string>
   grantRootFor: (absolutePath: string) => string | null
   grant: (absolutePath: string) => void
-  /** Present when the active provider lists at least one image model. */
   image?: ImageCapability
-  /** Present for the main run of the desktop app: lets the agent look at the user screen. */
   screen?: ScreenCapability
-  /** Projects the user registered, offered to the main run through open_project. */
   projects?: ProjectRef[]
   onProjectSwitch?: (absolutePath: string) => void
   onProgress?: () => void
-  /** Every assistant turn of the main run, recorded before a mid-run compaction can drop it. */
   onAssistantTurn?: (message: ChatMessage) => void
-  /** Fraction of the window where the run compacts itself and keeps going. */
   compactThreshold?: number
-  /** Set for delegated runs: the tool-call id the sub-output belongs to. */
   parentCallId?: string | null
   agentName?: string | null
   depth?: number
@@ -79,7 +72,6 @@ function isContextOverflow(error: unknown): boolean {
   )
 }
 
-/** Summary pass over the live message array; the run continues on the compacted transcript. */
 function makeRoom(
   options: AgentRunOptions,
   messages: ChatMessage[],
@@ -113,7 +105,6 @@ function toolsFor(options: AgentRunOptions): ToolSchema[] {
   return agentTools.filter((tool) => names.has(tool.name))
 }
 
-/** Only the run the user talks to can ask back; every question carries an id to answer by. */
 function askerFor(
   options: AgentRunOptions
 ): ((question: QuestionInput) => Promise<string>) | undefined {
@@ -336,7 +327,6 @@ export async function runAgent(options: AgentRunOptions): Promise<void> {
               const request: ApprovalRequest = { id: randomUUID(), ...input }
               return options.requestApproval(request)
             },
-            // A subagent reports to its parent, not to the user, so only the top run may ask.
             requestQuestion: askerFor(options),
             delegate: async (agentName, task) => {
               const entry = findEntry('agent', agentName, options.projectRoot)
@@ -356,7 +346,6 @@ export async function runAgent(options: AgentRunOptions): Promise<void> {
         content: outcome.content
       })
       if (outcome.attach?.length) {
-        // Providers only accept pictures on user turns, so the image follows the tool result.
         options.messages.push({
           role: 'user',
           content: 'The picture the tool captured is attached to this message.',

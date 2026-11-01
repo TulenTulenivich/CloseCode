@@ -4,10 +4,8 @@ import { brandForProviderInfo, brandLabels, detectBrand } from '../../../shared/
 import { BRAND_ART, type BrandId } from './brandPaths'
 import { vendorLogos } from './vendorLogos'
 
-/** ModelBrand plus Claude, which gets its own mark even though it is an Anthropic model. */
 export type LogoBrand = ModelBrand | 'claude'
 
-/** Brands with hand-tuned art keep it; everything else uses the vendor icon set. */
 const HAND_ART: Partial<Record<LogoBrand, BrandId>> = {
   openai: 'openai',
   anthropic: 'anthropic',
@@ -60,7 +58,6 @@ const VENDOR_KEY: Partial<Record<LogoBrand, string>> = {
   opencode: 'opencode'
 }
 
-/** Accent for brands whose icon ships without a colour. */
 const FALLBACK_ACCENT: Partial<Record<LogoBrand, string>> = {
   groq: '#f55036',
   xai: '#d6d6d0',
@@ -97,7 +94,6 @@ function hexToRgb(hex: string): [number, number, number] {
 interface BrandStyle {
   color: string
   label: string
-  /** Ink marks need a lift on dark themes, pale marks need a dip on light themes. */
   tone: '' | 'ink' | 'pale'
 }
 
@@ -148,13 +144,11 @@ export function brandForModel(model: string | null | undefined): LogoBrand | nul
   return claudeOr(detectBrand(model), model)
 }
 
-/** Anthropic models read better with the Claude mark; other vendors keep their own brand. */
 function claudeOr(brand: LogoBrand, haystack: string): LogoBrand {
   if (brand !== 'anthropic') return brand
   return /claude|sonnet|opus|haiku/i.test(haystack) ? 'claude' : 'anthropic'
 }
 
-/** Mark for providers the catalog does not know: a terminal prompt, never a letter. */
 function GenericMark({ size }: { size: number }): ReactNode {
   return (
     <svg

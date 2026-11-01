@@ -21,7 +21,6 @@ const samples: Sample[] = []
 let totalRequests = 0
 let seq = 0
 
-/** Rough token count: the same 3.2 chars/token heuristic the context meter uses. */
 function toTokens(chars: number): number {
   return Math.max(0, Math.round(chars / 3.2))
 }

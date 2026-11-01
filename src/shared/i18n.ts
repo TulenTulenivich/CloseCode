@@ -1,11 +1,6 @@
 export type Lang = 'ru' | 'en'
 
-/**
- * Every entry is a [ru, en] pair so the two languages stay side by side and a
- * missing translation is impossible to hide.
- */
 const entries = {
-  /* chrome */
   'chrome.settings': ['Настройки', 'Settings'],
   'chrome.api': ['{n} API', '{n} API'],
   'chrome.apiKey': ['API-ключ', 'API key'],
@@ -19,7 +14,6 @@ const entries = {
   'chrome.close': ['Закрыть окно', 'Close window'],
   'chrome.tree': ['Дерево проекта', 'Project tree'],
 
-  /* project tree panel */
   'tree.title': ['Файлы проекта', 'Project files'],
   'tree.refresh': ['Обновить', 'Refresh'],
   'tree.close': ['Закрыть', 'Close'],
@@ -30,7 +24,6 @@ const entries = {
     'Click a file to reveal it, double-click to copy its path.'
   ],
 
-  /* sidebar */
   'side.mode': ['Режим', 'Mode'],
   'side.coding': ['Coding', 'Coding'],
   'side.newTask': ['Новая задача', 'New task'],
@@ -66,7 +59,6 @@ const entries = {
   'side.justNow': ['только что', 'just now'],
   'side.privateToggle': ['Приватный режим', 'Private mode'],
 
-  /* welcome */
   'w.helloProject': ['Чем займёмся\nв {name}?', 'What shall we do\nin {name}?'],
   'w.helloPlain': ['Ваш код.\nВаш AI-агент.', 'Your code.\nYour AI agent.'],
   'w.subProject': [
@@ -106,7 +98,6 @@ const entries = {
   ],
   'w.connectBtn': ['Добавить API-ключ', 'Add an API key'],
 
-  /* prompts the composer inserts */
   'p.structure': ['Объясни структуру этого проекта', 'Explain the structure of this project'],
   'p.bugs': ['Найди потенциальные баги в коде', 'Find potential bugs in the code'],
   'p.readme': ['Добавь README с описанием проекта', 'Add a README describing the project'],
@@ -115,7 +106,6 @@ const entries = {
     'Draft a plan for a task without changing files'
   ],
 
-  /* composer */
   'c.placeholder': [
     'Опишите задачу, прикрепите файл или вставьте фото…',
     'Describe the task, attach a file or paste a photo…'
@@ -149,7 +139,6 @@ const entries = {
   'c.agentFiles': ['Файлы агента', 'Files from the agent'],
   'c.openFolder': ['Показать в папке', 'Reveal in folder'],
 
-  /* run summary */
   'run.doing': ['Выполняю', 'Working'],
   'run.done': ['Выполнено', 'Done'],
   'run.failed': ['С ошибками', 'With errors'],
@@ -169,7 +158,6 @@ const entries = {
   ],
   'run.opinionClose': ['Закрыть второе мнение', 'Close the second opinion'],
 
-  /* chat */
   'chat.thinking': ['Думаю над задачей', 'Thinking about the task'],
   'chat.planning': ['Составляю план', 'Drafting the plan'],
   'chat.stopped': ['Ответ остановлен вами.', 'Answer stopped by you.'],
@@ -210,7 +198,6 @@ const entries = {
   'tool.image': ['Рисует изображение', 'Generating image'],
   'tool.unknown': ['Инструмент', 'Tool'],
 
-  /* agent questions */
   'q.title': ['Вопрос от агента', 'A question from the agent'],
   'q.options': ['Быстрые ответы', 'Quick answers'],
   'q.other': ['Свой вариант', 'Own words'],
@@ -222,7 +209,6 @@ const entries = {
     'The agent waits for the answer and continues on its own.'
   ],
 
-  /* activity heatmap */
   'act.streak': ['{n} {day}', '{n} {day}'],
   'act.silence': ['{date} — тишина', '{date} — nothing'],
   'act.empty': [
@@ -264,7 +250,6 @@ const entries = {
   'unit.skill': ['{n} навык|{n} навыка|{n} навыков', '{n} skill|{n} skills'],
   'unit.agent': ['{n} агент|{n} агента|{n} агентов', '{n} agent|{n} agents'],
 
-  /* context meter */
   'ctx.button': [
     'Контекст: осталось {left} из {limit} токенов. Автосжатие при {threshold}%~',
     'Context: {left} of {limit} tokens left. Auto-compact at {threshold}%.'
@@ -282,7 +267,6 @@ const entries = {
   'ctx.compactNow': ['Сжать контекст сейчас', 'Compact context now'],
   'ctx.compacting': ['Сжимаю историю…', 'Compacting history…'],
 
-  /* live model load */
   'load.title': ['Загруженность модели', 'Model load'],
   'load.idle': ['модель свободна', 'model idle'],
   'load.working': ['ответ идёт', 'streaming'],
@@ -297,7 +281,6 @@ const entries = {
   'load.chars': ['{n} символ|{n} символа|{n} символов', '{n} char|{n} chars'],
   'load.requests': ['{n} запрос|{n} запроса|{n} запросов', '{n} request|{n} requests'],
 
-  /* approval */
   'a.title': ['Подтверждение изменения файла', 'Confirm file change'],
   'a.outsideTitle': ['Доступ вне папки проекта', 'Access outside the project'],
   'a.newFile': ['Новый файл — проверьте diff перед применением', 'New file — review the diff before applying'],
@@ -340,7 +323,6 @@ const entries = {
   ],
   'a.saveImage': ['Сохранить изображение', 'Save image'],
 
-  /* settings screen */
   's.title': ['Настройки', 'Settings'],
   's.sectionApp': ['Приложение', 'Application'],
   's.sectionGeneral': ['Основные', 'General'],
@@ -563,17 +545,14 @@ const entries = {
   's.enabled': ['включён', 'enabled'],
   's.disabled': ['выключен', 'disabled'],
 
-  /* unit nouns + byte sizes */
   'unit.b': ['Б', 'B'],
   'unit.kb': ['КБ', 'KB'],
   'unit.mb': ['МБ', 'MB'],
   'unit.model': ['{n} модель|{n} модели|{n} моделей', '{n} model|{n} models'],
 
-  /* task header */
   'task.switchFolder': ['Сменить папку проекта', 'Switch project folder'],
   'task.compact': ['Сжать контекст', 'Compact context'],
 
-  /* composer extras */
   'c.local': ['Локально', 'Local'],
   'c.ariaWorkspace': ['Рабочее пространство', 'Workspace'],
   'c.ariaMessage': ['Сообщение агенту', 'Message to the agent'],
@@ -584,7 +563,6 @@ const entries = {
     'Add a provider and an API key to send a task.'
   ],
 
-  /* model picker */
   'mp.providerNone': ['Провайдер не выбран', 'No provider selected'],
   'mp.title': ['Модель', 'Model'],
   'mp.hint': ['выбор для нового сообщения', 'applies to the next message'],
@@ -592,11 +570,9 @@ const entries = {
   'mp.imageBadge': ['фото', 'image'],
   'mp.thinkingBadge': ['thinking', 'thinking'],
 
-  /* approval extras */
   'a.diffEmpty': ['Содержимое файла не изменится.', 'The file content does not change.'],
   'a.truncated': ['Показаны первые {n} строк diff.', 'Showing the first {n} diff lines.'],
 
-  /* settings screen extras */
   's.kind': ['Тип API', 'API type'],
   's.kindOpenai': ['OpenAI-совместимый', 'OpenAI-compatible'],
   's.kindAnthropic': ['Anthropic', 'Anthropic'],
@@ -652,7 +628,6 @@ const entries = {
   's.makeDefault': ['Сделать активным', 'Make active'],
   's.openFile': ['Открыть файл', 'Open file'],
 
-  /* no-project suggestions */
   'p.hello': ['Привет! Что ты умеешь?', 'Hi! What can you do?'],
   'w.suggHello': ['Привет! Что ты умеешь?', 'Hi! What can you do?'],
   'w.suggHelloDesc': ['Коротко о возможностях агента', 'A short tour of what the agent does'],
@@ -663,7 +638,6 @@ const entries = {
   'w.suggOwn': ['Помоги спланировать проект', 'Help plan a project'],
   'w.suggOwnDesc': ['От идеи до структуры файлов', 'From idea to file layout'],
 
-  /* agent-facing text the app injects into the conversation */
   'sys.trimmed': [
     '[История диалога была автоматически сокращена, чтобы освободить контекст. Самые ранние сообщения удалены.]',
     '[The conversation history was automatically shortened to free context. The earliest messages were removed.]'
@@ -700,7 +674,6 @@ const entries = {
   'sys.selectProject': ['Выберите папку проекта', 'Choose a project folder'],
   'sys.openProject': ['Открыть проект', 'Open project'],
 
-  /* main-process errors */
   'e.emptySummary': ['Провайдер вернул пустую сводку.', 'The provider returned an empty summary.'],
   'e.noOpinion': [
     'Нужен хотя бы один завершённый ответ агента, чтобы запросить второе мнение.',
@@ -814,7 +787,6 @@ const entries = {
     'Could not download the image: {reason}'
   ],
 
-  /* tool details shown in the timeline */
   'd.wrote': ['Записано: {path}', 'Wrote: {path}'],
   'd.wroteOutside': ['Записано вне проекта: {path}', 'Wrote outside project: {path}'],
   'd.rejected': ['Отклонено: {path}', 'Rejected: {path}'],
@@ -886,7 +858,6 @@ export function translate(
   return text
 }
 
-/** Translation for a `{n}`-countable noun, e.g. "3 файла". */
 export function translateCount(
   lang: Lang,
   key: TranslationKey,

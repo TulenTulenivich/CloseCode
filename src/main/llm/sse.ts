@@ -80,7 +80,6 @@ export async function readHttpError(response: Response): Promise<Error> {
       detail = text
     }
   } catch {
-    // ignore body read errors
   }
   detail = detail.replace(/\s+/g, ' ').trim().slice(0, 600)
   const status = `HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`
@@ -115,7 +114,6 @@ export async function postForSse(
   try {
     host = new URL(url).host
   } catch {
-    // ignore, endpointUrl already validated
   }
   let response: Response
   try {

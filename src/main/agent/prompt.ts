@@ -7,13 +7,9 @@ export interface PromptOptions {
   projectPath: string | null
   effort: EffortLevel
   enabledSkills: string[]
-  /** Image models of the active provider; the tool is offered only when present. */
   imageModels?: string[]
-  /** Folders registered in the app, so open_project can name them without a lookup call. */
   projects?: { name: string; path: string }[]
-  /** Set when this run can grab the screen; the tool is offered only then. */
   screen?: boolean
-  /** Extra instructions for a delegated subagent run. */
   agentRole?: string | null
 }
 

@@ -1,5 +1,3 @@
-// Brand marks from Simple Icons (CC0) and Wikimedia Commons.
-// Inlined as path data so the renderer needs no network or extra assets.
 
 export interface BrandArt {
   viewBox: string

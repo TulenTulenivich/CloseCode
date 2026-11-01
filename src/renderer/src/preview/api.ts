@@ -412,7 +412,6 @@ function persistTitle(target: string | null, value: string): void {
   try {
     localStorage.setItem(TITLES_KEY, JSON.stringify(titles))
   } catch {
-    // Titles are cosmetic; the preview runs without localStorage.
   }
 }
 
@@ -424,7 +423,6 @@ function forgetTitle(target: string | null): void {
   try {
     localStorage.setItem(TITLES_KEY, JSON.stringify(titles))
   } catch {
-    // ignore quota errors
   }
 }
 
@@ -601,13 +599,11 @@ function loadActivityDays(): Record<string, DayCount> {
       if (parsed) return parsed
     }
   } catch {
-    // fall through to a fresh seeded map
   }
   const seeded = seedActivityDays()
   try {
     localStorage.setItem(ACTIVITY_KEY, JSON.stringify(seeded))
   } catch {
-    // preview works without localStorage
   }
   return seeded
 }
@@ -623,7 +619,6 @@ function bumpActivity(field: keyof DayCount): void {
   try {
     localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activityDays))
   } catch {
-    // ignore quota errors
   }
 }
 
@@ -748,7 +743,6 @@ function persist(): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
   } catch {
-    // Preview still works without localStorage.
   }
 }
 
@@ -852,7 +846,6 @@ function requestApproval(run: Run, request: ApprovalRequest): Promise<boolean> {
   })
 }
 
-/** Line-level added/removed counts, same approach as the real tools. */
 function diffStats(oldContent: string | null, newContent: string): { added: number; removed: number } {
   const before = oldContent ? oldContent.split(/\r?\n/) : []
   const after = newContent.split(/\r?\n/)
@@ -883,7 +876,6 @@ function isImportantChange(request: ApprovalRequest): boolean {
   return stats.added + stats.removed > 60
 }
 
-/** Mirrors the main-process policy: outside-folder access is never silent. */
 function autoApprovalFor(request: ApprovalRequest): ApprovalAnswer | null {
   const policy = settings.approvalPolicy
   if (policy === 'always') return null
@@ -923,7 +915,6 @@ function demoTitleFor(text: string): string {
   return pretty.length > 56 ? `${pretty.slice(0, 56).trimEnd()}…` : pretty
 }
 
-/** Names the session after the first request, like the main process does. */
 function scheduleTitle(run: Run, text: string): void {
   const source = text.trim()
   if (!source || title) return
@@ -1030,7 +1021,6 @@ async function simulateRead(run: Run, intent: 'structure' | 'bugs'): Promise<voi
 
 let demoPicture: { dataUrl: string; bytes: number } | null = null
 
-/** Paints a soft landscape so the demo shows a real raster preview instead of a stub. */
 function demoImage(): { dataUrl: string; bytes: number } {
   if (demoPicture) return demoPicture
   const canvas = document.createElement('canvas')
@@ -1184,7 +1174,6 @@ async function simulateAttachments(run: Run, files: ChatAttachment[]): Promise<v
   )
 }
 
-/** Stands in for the main-process pause: the demo run waits until the card answers. */
 function askAbout(run: Run, question: UserQuestion): Promise<string> {
   return new Promise<string>((resolve) => {
     pendingQuestion = { run, id: question.id, resolve }
@@ -1439,7 +1428,6 @@ async function addProject(): Promise<SettingsView | null> {
   return activateProject(DEMO_PROJECTS[demoProjectIndex].path)
 }
 
-/** Switches the active project and swaps in the transcript stored for it. */
 async function activateProject(path: string): Promise<SettingsView> {
   const project =
     settings.projects.find((item) => item.path === path) ??
@@ -1563,7 +1551,6 @@ const DEMO_TREE: Record<string, TreeEntry[]> = {
   ]
 }
 
-/** The browser preview has no desktop to grab, so it paints a stand-in screen. */
 function mockScreenDataUrl(): string {
   const canvas = document.createElement('canvas')
   canvas.width = 1280

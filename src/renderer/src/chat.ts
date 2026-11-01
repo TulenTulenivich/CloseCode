@@ -15,7 +15,6 @@ export interface ToolItem {
   detail: string
   startedAt: number
   finishedAt?: number
-  /** Set when the call belongs to a delegated subagent run. */
   parent?: string | null
   agent?: string | null
 }

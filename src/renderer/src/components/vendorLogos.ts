@@ -1,13 +1,8 @@
 export interface VendorLogo {
-  /** Simple Icons slug, used as the catalog key. */
   slug: string
-  /** Human readable brand name. */
   title: string
-  /** Single SVG path 'd' for a 24x24 viewBox (use paths for multi-shape marks). */
   path?: string
-  /** Multiple SVG paths for multi-shape marks. */
   paths?: string[]
-  /** Brand color when Simple Icons provides one, lowercase hex without #. */
   hex?: string
 }
 

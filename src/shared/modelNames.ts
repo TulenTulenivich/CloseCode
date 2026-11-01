@@ -112,7 +112,6 @@ const BRAND_HINTS: [ModelBrand, string[]][] = [
   ['opencode', ['opencode']]
 ]
 
-/** Provider label used by the app itself, e.g. a DeepSeek base URL. */
 function brandFromUrl(value: string): ModelBrand | null {
   const url = value.toLowerCase()
   if (url.includes('azure') || url.includes('aoai')) return 'azure'
@@ -163,10 +162,6 @@ export function detectBrand(...candidates: (string | null | undefined)[]): Model
   return 'generic'
 }
 
-/**
- * Brand for a provider entry. Only the provider's own label and endpoint count:
- * a generic gateway must keep its own mark even when it serves Gemini models.
- */
 export function brandForProviderInfo(
   label: string,
   baseUrl: string,
@@ -273,7 +268,6 @@ const DROP_TOKENS = new Set([
   '001',
   '002',
   '01',
-  // Short release stamp on inclusionai/ling-3.1-flash-1019-free.
   '1019',
   'latest0',
   'model',
@@ -299,10 +293,6 @@ function capitalize(token: string): string {
   return token.charAt(0).toUpperCase() + token.slice(1)
 }
 
-/**
- * Turns a raw provider id such as `anthropic/claude-sonnet-4-5-20250929`
- * into something a human would write: `Claude Sonnet 4.5`.
- */
 export function prettyModelName(raw: string): string {
   const withoutTag = raw.includes(':') ? raw.replace(/^([^:]+):(.+)$/, '$1 $2') : raw
   const parts = withoutTag.split('/')
@@ -319,7 +309,6 @@ export function prettyModelName(raw: string): string {
     if (!numberRun.length) return
     const joined = numberRun.join('.')
     const rest = numberRun.slice(1)
-    // `3 5` becomes `3.5`, but `4 20251101` keeps them apart.
     words.push(rest.length && rest.every((item) => item.length <= 2) ? joined : numberRun.join(' '))
     numberRun = []
   }
@@ -341,7 +330,6 @@ export function prettyModelName(raw: string): string {
       words.push(fixed)
       continue
     }
-    // `llama31` / `gpt4` style: split trailing digits into their own word.
     const split = token.match(/^([a-z]+)(\d+(?:\.\d+)?)$/)
     if (split) {
       const head = WORD_FIXES[split[1]] ?? capitalize(split[1])
@@ -360,7 +348,6 @@ export function prettyModelName(raw: string): string {
   return cleaned || raw
 }
 
-/** `openai/gpt-4o` → `openai`; `gpt-4o` → null. */
 export function modelNamespace(raw: string): string | null {
   const index = raw.lastIndexOf('/')
   if (index <= 0) return null
@@ -374,11 +361,8 @@ export function modelTechnicalName(raw: string): string {
 }
 
 export interface ModelPresentation {
-  /** Readable name for headings and chips. */
   display: string
-  /** Raw id as the provider knows it. */
   raw: string
-  /** Namespace in front of the id, when present. */
   namespace: string | null
   brand: ModelBrand
 }
@@ -442,33 +426,22 @@ export type EffortScaleKey =
   | 'standard'
 
 const EFFORT_SCALES: Record<EffortScaleKey, EffortLevel[]> = {
-  // OpenAI exposes reasoning_effort: minimal/low/medium/high. `xhigh` is not a public value.
   gpt5: ['minimal', 'low', 'medium', 'high'],
-  // GPT-5.1 replaced minimal with low/medium/high.
   gpt51: ['low', 'medium', 'high'],
-  // Anthropic's effort parameter: low/medium/high, with max on the largest models.
   claude: ['low', 'medium', 'high', 'max'],
   balanced: ['low', 'medium', 'high'],
   reasoning: ['low', 'medium', 'high'],
-  // Qwen3-Max exposes the same segment set shown by its own picker: low/medium/extra high.
   qwen: ['low', 'medium', 'xhigh'],
-  // Toggle-style reasoning APIs (DeepSeek Reasoner, Grok).
   dual: ['low', 'high'],
   standard: ['low', 'medium', 'high']
 }
 
 export interface EffortScale {
-  /** Family of labels the model's picker speaks, e.g. `claude`. */
   key: EffortScaleKey
   levels: EffortLevel[]
-  /** True when the provider API really accepts an effort/thinking setting. */
   native: boolean
 }
 
-/**
- * The effort scale belongs to the concrete model: GPT-5 has four grades,
- * Claude four, DeepSeek/Grok two, and each family names them its own way.
- */
 export function effortScaleFor(model: string): EffortScale {
   const id = model.toLowerCase()
   if (/gpt-?5[.-]?1|gpt-?5\.1/.test(id)) {
@@ -479,7 +452,6 @@ export function effortScaleFor(model: string): EffortScale {
   }
   if (id.includes('claude')) {
     const compact = id.includes('haiku') || /claude-3[.-]/.test(id) || id.includes('instant')
-    // Claude 3.7 and the 4 family accept low/medium/high. `max` is an Opus/Sonnet 4+ grade.
     const supportsMax = /(opus|sonnet)[-_]?4|claude-4/.test(id) && !/3[.-]7/.test(id)
     const levels: EffortLevel[] = compact
       ? ['low', 'medium', 'high']
@@ -489,7 +461,6 @@ export function effortScaleFor(model: string): EffortScale {
     return { key: 'claude', levels, native: !compact }
   }
   if (id.includes('gemini') || id.includes('gemma')) {
-    // Gemini 2.5+/3 exposes thinking budgets/levels; Gemma does not.
     return { key: 'balanced', levels: [...EFFORT_SCALES.balanced], native: id.includes('gemini') }
   }
   if (/deepseek.*(r1|reasoner)|deepseek-reasoner/.test(id)) {
@@ -502,16 +473,13 @@ export function effortScaleFor(model: string): EffortScale {
   if (id.includes('kimi') || id.includes('glm') || id.includes('minimax') || id.includes('thinking')) {
     return { key: 'balanced', levels: [...EFFORT_SCALES.balanced], native: true }
   }
-  // A plain chat model has no provider-side reasoning control; the picker stays hidden.
   return { key: 'standard', levels: [...EFFORT_SCALES.standard], native: false }
 }
 
-/** Effort choices a specific model understands. */
 export function effortOptionsFor(model: string): EffortLevel[] {
   return effortScaleFor(model).levels
 }
 
-/** Whether the model exposes reasoning effort through its API at all. */
 export function supportsEffort(model: string): boolean {
   return effortScaleFor(model).native
 }
@@ -525,7 +493,6 @@ export function defaultEffortFor(model: string): EffortLevel {
   return options.includes('medium') ? 'medium' : options[0]
 }
 
-/** Snaps a stored value onto the model's own scale. */
 export function clampEffort(model: string, effort: EffortLevel): EffortLevel {
   const options = effortOptionsFor(model)
   if (options.includes(effort)) return effort
@@ -535,7 +502,6 @@ export function clampEffort(model: string, effort: EffortLevel): EffortLevel {
   )[0]
 }
 
-/** OpenAI `reasoning_effort` value for models that accept it. */
 export function reasoningEffortFor(model: string, effort: EffortLevel): string | null {
   const id = model.toLowerCase()
   if (id.includes('claude')) return null
@@ -545,13 +511,11 @@ export function reasoningEffortFor(model: string, effort: EffortLevel): string |
     id.includes('reasoner')
   if (!reasoningModel) return null
   const level = clampEffort(model, effort)
-  // Public reasoning_effort values stop at high. Extra-high/max are app-side labels.
   if (level === 'max' || level === 'xhigh') return 'high'
   if (level === 'minimal') return id.includes('gpt-5') && !/gpt-?5[.-]?1/.test(id) ? 'minimal' : 'low'
   return level
 }
 
-/** Anthropic extended-thinking budget in tokens, or null when unsupported. */
 export function thinkingBudgetFor(model: string, effort: EffortLevel): number | null {
   const id = model.toLowerCase()
   const supportsThinking = /claude-(3-7|4|sonnet-4|opus-4|\d+\.\d+-(opus|sonnet))/.test(id)
@@ -630,7 +594,6 @@ const IMAGE_MODEL_HINTS = [
 const IMAGE_SEGMENT = /(^|[/\-_.])images?([/\-_.]|$)/
 const SD_SEGMENT = /(^|[/\-_.])sd[0-9x]+([/\-_.]|$)/
 
-/** True for model ids that generate images rather than chat completions. */
 export function isImageModel(raw: string): boolean {
   const id = raw.trim().toLowerCase()
   if (!id) return false
@@ -638,12 +601,10 @@ export function isImageModel(raw: string): boolean {
   return IMAGE_SEGMENT.test(id) || SD_SEGMENT.test(id)
 }
 
-/** Free context kept for the summarizer while compacting. */
 export const COMPACT_RESERVE_TOKENS = 24_000
 export const COMPACT_DEFAULT_PERCENT = 80
 export const COMPACT_MAX_PERCENT = 95
 
-/** Lowest compaction point that still leaves room for the summary pass. */
 export function compactMinPercent(limit: number): number {
   return Math.min(90, Math.max(15, Math.ceil((COMPACT_RESERVE_TOKENS / Math.max(1, limit)) * 100)))
 }
@@ -653,7 +614,6 @@ export function clampCompactPercent(percent: number, limit: number): number {
   return Math.min(COMPACT_MAX_PERCENT, Math.max(compactMinPercent(limit), safe))
 }
 
-/** Rough context window for a model id, used until the provider says otherwise. */
 export function contextWindowFor(model: string): number {
   const id = model.toLowerCase()
   if (id.includes('1m') || id.includes('-1000k') || id.includes('1000000')) return 1_000_000

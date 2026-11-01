@@ -17,7 +17,6 @@ interface OpenAiDelta {
   [key: string]: unknown
 }
 
-/** Gateways disagree on where the chain of thought lives, so read all three shapes. */
 function reasoningDelta(delta: OpenAiDelta): string {
   for (const key of ['reasoning_content', 'reasoning']) {
     const value = delta[key]
