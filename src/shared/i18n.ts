@@ -467,6 +467,24 @@ const entries = {
     'любой OpenAI-совместимый API, Anthropic или локальная Ollama',
     'any OpenAI-compatible API, Anthropic or local Ollama'
   ],
+  's.proxyTitle': ['Прокси', 'Proxy'],
+  's.proxyNote': [
+    'Запросы к провайдеру пойдут через ваш прокси - так открываются модели, которые не отвечают из вашего региона.',
+    'Provider requests go through your proxy, which opens up models that stay silent from your region.'
+  ],
+  's.proxyLabel': ['Адрес прокси', 'Proxy address'],
+  's.proxyApply': ['Применить', 'Apply'],
+  's.proxyClear': ['Выключить', 'Turn off'],
+  's.proxyOn': ['Сейчас через {url}', 'Now through {url}'],
+  's.proxyOff': ['Сейчас напрямую', 'Currently direct'],
+  's.proxyHint': [
+    'Подойдёт любой HTTP-прокси, например от Clash или v2rayN. Ключ и текст запроса проходят через него, поэтому доверяйте только своему.',
+    'Any HTTP proxy works, for example the one from Clash or v2rayN. Your key and prompt text pass through it, so trust it first.'
+  ],
+  's.proxyGeo': [
+    'Без прокси из РФ и РБ обычно не отвечают OpenAI и Anthropic; бесплатные модели, OpenRouter и локальные провайдеры работают напрямую.',
+    'Without a proxy, OpenAI and Anthropic usually stay silent from RF and RB; the free models, OpenRouter and local providers answer directly.'
+  ],
   's.custom': ['Свой провайдер', 'Custom provider'],
   's.presetOllama': ['Ollama (локально)', 'Ollama (local)'],
   's.label': ['Название', 'Name'],
@@ -723,6 +741,14 @@ const entries = {
   'e.noBaseUrl': ['Base URL не указан.', 'Base URL is missing.'],
   'e.fetchModels': ['Не удалось получить список моделей: {reason}', 'Could not load the model list: {reason}'],
   'e.connect': ['Не удалось подключиться к {host}: {reason}', 'Could not connect to {host}: {reason}'],
+  'e.badProxy': [
+    'Прокси - это http:// или https:// адрес вида http://127.0.0.1:7890',
+    'A proxy is an http:// or https:// address like http://127.0.0.1:7890'
+  ],
+  'e.geoHint': [
+    'провайдер не отвечает из вашего региона: возьмите бесплатную модель, добавьте зеркальный шлюз или включите прокси в настройках',
+    'the provider does not answer from your region: pick a free model, add a mirror gateway, or turn on the proxy in settings'
+  ],
   'e.providerError': ['Провайдер вернул ошибку.', 'The provider returned an error.'],
   'e.emptyResponse': ['Сервер вернул пустой ответ.', 'The server returned an empty response.'],
   'e.stepLimit': ['Агент достиг лимита шагов. Уточните задачу и попробуйте снова.', 'The agent hit its step limit. Narrow the task and try again.'],

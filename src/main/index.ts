@@ -46,6 +46,7 @@ import { streamOpenAi } from './llm/openai'
 import type { ChatMessage, MessageImage } from './llm/types'
 import { flushActivity, getActivity, recordMessage, recordTool } from './activity'
 import { modelLoad } from './load'
+import { initProxy } from './net'
 import { openLibraryDir } from './library'
 import { tr } from './lang'
 import {
@@ -68,6 +69,7 @@ import {
   getEnabledSkills,
   getProjectPath,
   getSettingsView,
+  getStoredProxy,
   getUiScaleFactor,
   isPathUnder,
   removeProject,
@@ -81,6 +83,7 @@ import {
   setCompactAtSetting,
   setEffortSetting,
   setLanguageSetting,
+  setProxySetting,
   setSecondOpinionSetting,
   setSkillEnabledSetting
 } from './settings'
@@ -898,6 +901,8 @@ function registerIpc(): void {
     return view
   })
 
+  ipcMain.handle('settings:set-proxy', (_event, proxyUrl: unknown) => setProxySetting(proxyUrl))
+
   ipcMain.handle('settings:fetch-models', async (_event, payload: FetchModelsPayload) => {
     if (!payload || (payload.kind !== 'openai' && payload.kind !== 'anthropic')) {
       throw new Error(tr('e.badProviderKind'))
@@ -1336,6 +1341,7 @@ if (!hasLock) {
 
   app.whenReady().then(() => {
     app.setAppUserModelId('com.closecode.app')
+    initProxy(getStoredProxy())
     registerIpc()
     history = loadHistory(getProjectPath())
     transcript = loadProjectTranscript(getProjectPath())

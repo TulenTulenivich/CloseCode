@@ -19,6 +19,7 @@ import {
   filterFreeModels,
   isFreeProvider
 } from '../../../shared/freeModels'
+import { normalizeProxy } from '../../../shared/proxy'
 import type {
   ActivityDay,
   ActivityView,
@@ -274,6 +275,7 @@ function defaultSettings(): SettingsView {
     compactAt: COMPACT_DEFAULT_PERCENT,
     compactMin: compactMinPercent(contextWindowFor('gpt-4o-mini')),
     compactMax: COMPACT_MAX_PERCENT,
+    proxyUrl: '',
     skills: DEMO_SKILLS.map((skill) => ({ ...skill })),
     agents: DEMO_AGENTS.map((agent) => ({ ...agent }))
   }
@@ -380,6 +382,7 @@ function loadSettings(): SettingsView {
         typeof parsed.compactAt === 'number' && Number.isFinite(parsed.compactAt)
           ? Math.round(parsed.compactAt)
           : base.compactAt,
+      proxyUrl: typeof parsed.proxyUrl === 'string' ? parsed.proxyUrl : base.proxyUrl,
       skills: Array.isArray(parsed.skills) && parsed.skills.length ? parsed.skills : base.skills,
       agents: parsed.agents ?? base.agents
     })
@@ -1423,6 +1426,14 @@ async function setCompactAt(percent: number): Promise<SettingsView> {
   return snapshot()
 }
 
+async function setProxy(raw: string): Promise<SettingsView> {
+  const url = normalizeProxy(raw)
+  if (url === null) throw new Error(tStatic('e.badProxy'))
+  settings = { ...settings, proxyUrl: url }
+  persist()
+  return snapshot()
+}
+
 async function addProject(): Promise<SettingsView | null> {
   demoProjectIndex = (demoProjectIndex + 1) % DEMO_PROJECTS.length
   return activateProject(DEMO_PROJECTS[demoProjectIndex].path)
@@ -1916,6 +1927,7 @@ export function installPreviewApi(): void {
     setSecondOpinion,
     setApprovalPolicy,
     setCompactAt,
+    setProxy,
     addProject,
     openProject,
     removeProject,

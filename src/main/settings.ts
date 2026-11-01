@@ -40,6 +40,7 @@ import type {
 } from '../shared/types'
 import { setLanguage, tr } from './lang'
 import { listAgents, listSkills } from './library'
+import { currentProxy, installProxy } from './net'
 import { countHistory } from './sessions'
 
 interface StoredProvider {
@@ -97,6 +98,7 @@ export interface StoredSettings {
   compactAt: number
   enabledSkills: string[]
   freeSeeded: boolean
+  proxyUrl: string
 }
 
 export interface AgentProvider {
@@ -137,7 +139,8 @@ function defaults(): StoredSettings {
     approvalPolicy: 'always',
     compactAt: COMPACT_DEFAULT_PERCENT,
     enabledSkills: [],
-    freeSeeded: false
+    freeSeeded: false,
+    proxyUrl: ''
   }
 }
 
@@ -337,6 +340,7 @@ function normalizeStored(raw: unknown): StoredSettings {
     )
   }
   settings.freeSeeded = data.freeSeeded === true
+  if (typeof data.proxyUrl === 'string') settings.proxyUrl = data.proxyUrl.trim()
 
   return finalize(settings)
 }
@@ -503,6 +507,7 @@ function toView(settings: StoredSettings, liveMessages?: number): SettingsView {
     compactAt: clampCompactPercent(settings.compactAt, limit),
     compactMin: compactMinPercent(limit),
     compactMax: COMPACT_MAX_PERCENT,
+    proxyUrl: currentProxy() ?? '',
     skills: listSkills(activePath, settings.enabledSkills),
     agents: listAgents(activePath)
   }
@@ -680,6 +685,17 @@ export function setCompactAtSetting(percent: number): SettingsView {
   settings.compactAt = clampCompactPercent(percent, activeLimit(settings))
   persist(settings)
   return getSettingsView()
+}
+
+export function setProxySetting(raw: unknown): SettingsView {
+  const settings = load()
+  settings.proxyUrl = installProxy(raw)
+  persist(settings)
+  return getSettingsView()
+}
+
+export function getStoredProxy(): string {
+  return load().proxyUrl
 }
 
 export function addProject(target: string): SettingsView {

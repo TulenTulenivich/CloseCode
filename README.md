@@ -9,7 +9,7 @@
 ## Приватность по устройству, а не по обещанию
 
 - Ключи живут только в main-процессе и лежат на диске в зашифрованном виде (`safeStorage`, на Windows это DPAPI). В renderer уходит только флаг «ключ есть» - plaintext-ключ в интерфейс не попадает никогда.
-- Из приложения уходит только то, что вы сами отправили агенту: запросы идут прямо с вашей машины на эндпоинт провайдера. Своих серверов, телеметрии и прокси в программе нет.
+- Из приложения уходит только то, что вы сами отправили агенту: запросы идут прямо с вашей машины на эндпоинт провайдера. Своих серверов, телеметрии и прокси в программе нет; прокси появляется только если вы сами впишете адрес в настройки - и тогда запросы идут через него.
 - Каждая запись в файл идёт через подтверждение: вы видите diff и решаете, применить один раз, разрешить папку целиком или отказаться. Политика настраивается - `always` / `smart` / `never`, по умолчанию самая осторожная.
 - Папки вне выбранного проекта агенту недоступны, пока вы явно их не разрешите; список разрешённых корней хранится у вас в настройках.
 - Приватная сессия: переписка, заголовок задачи и статистика инструментов не записываются на диск.
@@ -36,6 +36,7 @@
 - При первом запуске уже подключён провайдер «Бесплатные модели» - 9 моделей через gateway, без ключа. Работает ровно пока у gateway есть свободная ёмкость, так что для серьёзной работы лучше сразу вписать свой ключ.
 - Мощность рассуждения выбирается по API-уровням конкретной модели (`minimal`, `low`, `medium`, `high`, `xhigh`, `max`) - список зависит от модели, выдуманных ярлыков нет.
 - Загрузка модели видна в реальном времени: токенов в секунду и задержка до первого символа.
+- OpenAI и Anthropic молчат из РФ и РБ. В настройках есть поле «Прокси»: впишите туда свой `http://127.0.0.1:7890` (Clash, v2rayN, что угодно) - запросы пойдут через него, и блокировка региона снимается. Работает для всех провайдеров, включая список моделей и генерацию картинок. Без прокси напрямую отвечают бесплатные модели, OpenRouter и локальные эндпоинты. Если провайдер блокирует по региону, вместо голого `HTTP 403` покажется подсказка с тремя вариантами действий.
 
 ## Интерфейс
 
@@ -111,7 +112,7 @@ A local-first desktop coding agent for Windows. Your own API keys, direct calls 
 ### Privacy by construction, not by promise
 
 - Keys live in the main process only and rest on disk encrypted (`safeStorage`, which is DPAPI on Windows). The renderer receives a "has key" flag and never the plaintext.
-- Only what you send to the agent leaves your machine, and it goes straight to the provider endpoint you configured. No servers of ours, no telemetry, no proxy.
+- Only what you send to the agent leaves your machine, and it goes straight to the provider endpoint you configured. No servers of ours, no telemetry, no proxy - a proxy appears only if you type an address in Settings, and then requests do travel through it.
 - Every file write is gated by an approval: you read the diff and decide to apply once, allow the folder, or refuse. The policy is configurable - `always` / `smart` / `never`, and the default is the careful one.
 - Folders outside the selected project stay unreachable until you explicitly allow them; the allowed roots are kept in your own settings.
 - Private session: transcript, task title and tool statistics are never written to disk.
@@ -138,6 +139,7 @@ On top of that: a real shell tab over PTY, a context meter that compacts itself 
 - On first run a "Free models" provider is already wired up: 9 models through a gateway, no key needed. It works only while that gateway has spare capacity, so add your own key for real work.
 - Thinking effort follows the API levels of each model (`minimal`, `low`, `medium`, `high`, `xhigh`, `max`) - the list depends on the model, no invented labels.
 - Live model load is shown in the UI: tokens per second and time to first token.
+- OpenAI and Anthropic stay silent from RF and RB. Settings have a "Proxy" field: drop in your own `http://127.0.0.1:7890` (Clash, v2rayN, anything) and requests go through it, which lifts the regional block. It covers every provider call, including the model list and image generation. Without a proxy, the free models, OpenRouter and local endpoints still answer directly. When a provider blocks your region you get a hint with three ways forward instead of a bare `HTTP 403`.
 
 ### Interface
 

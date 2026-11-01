@@ -100,6 +100,7 @@ const EMPTY_SETTINGS: SettingsView = {
   compactAt: 80,
   compactMin: 15,
   compactMax: 95,
+  proxyUrl: '',
   skills: [],
   agents: []
 }

@@ -18,6 +18,7 @@ const api: CloseCodeApi = {
   setSecondOpinion: (payload) => ipcRenderer.invoke('settings:set-second-opinion', payload),
   setApprovalPolicy: (policy) => ipcRenderer.invoke('settings:set-approval', policy),
   setCompactAt: (percent) => ipcRenderer.invoke('settings:set-compact', percent),
+  setProxy: (proxyUrl) => ipcRenderer.invoke('settings:set-proxy', proxyUrl),
   addProject: () => ipcRenderer.invoke('project:add'),
   openProject: (path) => ipcRenderer.invoke('project:open', path),
   removeProject: (path) => ipcRenderer.invoke('project:remove', path),

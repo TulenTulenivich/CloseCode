@@ -65,6 +65,9 @@ export async function* readSse(response: Response): AsyncGenerator<SseEvent> {
   if (last) yield last
 }
 
+const GEO_BLOCK =
+  /unsupported_country_region_territory|country, region, or territory|request_forbidden|request not allowed|unavailable in your (?:country|region)|not available in your country/i
+
 export async function readHttpError(response: Response): Promise<Error> {
   let detail = ''
   try {
@@ -83,6 +86,9 @@ export async function readHttpError(response: Response): Promise<Error> {
   }
   detail = detail.replace(/\s+/g, ' ').trim().slice(0, 600)
   const status = `HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`
+  if (response.status === 403 && GEO_BLOCK.test(detail)) {
+    return new Error(detail ? `${status}: ${tr('e.geoHint')} (${detail})` : `${status}: ${tr('e.geoHint')}`)
+  }
   return new Error(detail ? `${status}: ${detail}` : status)
 }
 

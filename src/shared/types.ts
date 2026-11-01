@@ -89,6 +89,7 @@ export interface SettingsView {
   compactAt: number
   compactMin: number
   compactMax: number
+  proxyUrl: string
   skills: SkillInfo[]
   agents: AgentInfo[]
 }
@@ -329,6 +330,7 @@ export interface CloseCodeApi {
   setSecondOpinion(payload: SecondOpinionPayload): Promise<SettingsView>
   setApprovalPolicy(policy: ApprovalPolicy): Promise<SettingsView>
   setCompactAt(percent: number): Promise<SettingsView>
+  setProxy(proxyUrl: string): Promise<SettingsView>
   addProject(): Promise<SettingsView | null>
   openProject(path: string): Promise<SettingsView>
   removeProject(path: string): Promise<SettingsView>

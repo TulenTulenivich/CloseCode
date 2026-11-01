@@ -215,10 +215,15 @@ export function SettingsScreen({
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
   const [compactAt, setCompactAt] = useState(settings.compactAt)
+  const [proxyDraft, setProxyDraft] = useState(settings.proxyUrl)
 
   useEffect(() => {
     setCompactAt(settings.compactAt)
   }, [settings.compactAt])
+
+  useEffect(() => {
+    setProxyDraft(settings.proxyUrl)
+  }, [settings.proxyUrl])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
@@ -332,7 +337,12 @@ export function SettingsScreen({
     void run(() => window.closecode.setCompactAt(compactAt))
   }
 
-  async function loadModels(row: Row): Promise<void> {    if (!row.baseUrl.trim()) {
+  function commitProxy(raw: string): void {
+    void run(() => window.closecode.setProxy(raw))
+  }
+
+  async function loadModels(row: Row): Promise<void> {
+    if (!row.baseUrl.trim()) {
       patchFetch(row.id, { error: t('s.noBaseUrlForFetch'), info: '' })
       return
     }
@@ -800,6 +810,57 @@ export function SettingsScreen({
 
             {section === 'providers' && (
               <>
+                <Card title={t('s.proxyTitle')} note={t('s.proxyNote')}>
+                  <div className="field">
+                    <span>
+                      {t('s.proxyLabel')}{' '}
+                      <em>
+                        {settings.proxyUrl
+                          ? t('s.proxyOn', { url: settings.proxyUrl })
+                          : t('s.proxyOff')}
+                      </em>
+                    </span>
+                    <div className="key-row">
+                      <input
+                        className="input mono"
+                        value={proxyDraft}
+                        onChange={(event) => setProxyDraft(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') commitProxy(proxyDraft)
+                        }}
+                        placeholder="http://127.0.0.1:7890"
+                        autoComplete="off"
+                        spellCheck={false}
+                        aria-label={t('s.proxyLabel')}
+                        disabled={busy}
+                      />
+                      <button
+                        type="button"
+                        className="ghost-btn"
+                        disabled={busy}
+                        onClick={() => commitProxy(proxyDraft)}
+                      >
+                        {t('s.proxyApply')}
+                      </button>
+                      {settings.proxyUrl && (
+                        <button
+                          type="button"
+                          className="ghost-btn"
+                          disabled={busy}
+                          onClick={() => {
+                            setProxyDraft('')
+                            commitProxy('')
+                          }}
+                        >
+                          {t('s.proxyClear')}
+                        </button>
+                      )}
+                    </div>
+                    <small className="field-note">{t('s.proxyHint')}</small>
+                    <small className="field-note">{t('s.proxyGeo')}</small>
+                  </div>
+                </Card>
+
                 <Card title={t('s.popularTitle')} note={t('s.addProviderSub')}>
                   <div className="presets">
                     {PRESETS.map((preset) => {
