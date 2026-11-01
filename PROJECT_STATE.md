@@ -2,23 +2,20 @@
 
 ## 1. Стек и архитектура
 - **Runtime & Desktop:** Electron, TypeScript, Vite (electron-vite).
-- **Frontend:** React 19, CSS modules / custom Liquid Glass styles, xterm.js.
+- **Frontend:** React 19, Liquid Glass + Material Design 3, xterm.js.
 - **LLM Engine:** SSE stream parsers (OpenAI, Anthropic, DeepSeek, Google Gemini, Groq, Mistral, xAI).
 - **Upstream:** `TulenTulenivich/CloseCode:main`
 - **Fork:** `nanodevmc/CloseCode` (ветка `audit-fixes` -> PR #1).
 
 ## 2. Что реализовано
-- **50 багфиксов:** исправление ENOENT в инструментах, рекурсивного глоббинга `**`, WHATWG SSE пробелов, склейки сообщений Anthropic, стриминга `reasoning_content`, атомарного сохранения настроек/сессий против блокировок Windows.
-- **Интеграция DeepSeek:**
-  - Пресет `https://api.deepseek.com`, модели `deepseek-chat` (V3) и `deepseek-reasoner` (R1).
-  - Исключение `reasoning_effort` и нестандартных температур для предотвращения ошибок 400 API DeepSeek.
-  - Нативный стриминг reasoning deltas в блок мыслей.
-- **Мультиаккаунты & Быстрое переключение:**
-  - Кнопка дублирования аккаунта в `SettingsScreen` (создание копии профиля с независимым API-ключом).
-  - Горизонтальная панель чипов платформ/аккаунтов в `ModelPicker` для моментального переключения в 1 клик.
-- **CI/CD Релизы под Windows:**
-  - Workflow `.github/workflows/release.yml` для автоматической сборки Portable `.exe` через `electron-builder` и публикации в GitHub Releases.
-- **Экспорт и UI:** экспорт чата в структурированный JSON (`exportChatJson`), копирование ответов ассистента в буфер, безопасная фильтрация протоколов ссылок.
+- **50 багфиксов:** ENOENT в инструментах, рекурсивный глоббинг `**`, WHATWG SSE пробелы, склейка сообщений Anthropic, стриминг `reasoning_content`, атомарные сохранения настроек/сессий.
+- **Интеграция DeepSeek:** `deepseek-chat` и `deepseek-reasoner` (R1), защита от ошибки 400 по `reasoning_effort`.
+- **Google Аккаунт (Gemini Pro/Ultra):** бесшовный импорт OAuth сессии из Antigravity (`~/.gemini/`) без ввода API-ключей.
+- **Контекстное окно 1 000 000 токенов (1M):** лимит 1 048 576 токенов и буфер компактификации до 1.5 млн символов.
+- **Авто-ротация аккаунтов при 0% лимита (429) с авто-продолжением:** моментальное переключение на следующий доступный аккаунт и продолжение выполнения без прерывания диалога.
+- **Обход блокировок AgyUnlocker:** авто-маршрутизация через локальную службу `127.0.0.1:53129` и горячая клавиша **Ctrl+U**.
+- **Antigravity Remote Control:** фоновый демон на порту 4242 (`--remote-control`), мобильный веб-пульт и REST/SSE API.
+- **CI/CD Релизы под Windows:** workflow `.github/workflows/release.yml` для сборки Portable `.exe` и публикации в GitHub Releases.
 
 ## 3. Проверка правил GitHub
 - Сборка на `windows-latest` укладывается в нормальные лимиты (2–3 мин), без майнинга и abuse.
