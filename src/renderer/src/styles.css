@@ -2696,6 +2696,65 @@ button {
   flex: none;
 }
 
+.platform-switch-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 6px 2px 8px;
+  scrollbar-width: none;
+}
+
+.platform-switch-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.platform-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted, var(--muted));
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.platform-chip:hover {
+  background: var(--panel-3, var(--hover));
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.platform-chip.active {
+  background: var(--accent-subtle, rgba(64, 196, 255, 0.15));
+  color: var(--accent-text, var(--accent));
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.platform-chip-label {
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.platform-chip-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
 .model-scroll {
   max-height: min(240px, 34vh);
   overflow-y: auto;

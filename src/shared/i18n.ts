@@ -602,6 +602,10 @@ const entries = {
   's.edit': ['Изменить', 'Edit'],
   's.providerCount': ['{n} подключено', '{n} connected'],
   's.removeProvider': ['Удалить провайдера {name}', 'Remove {name}'],
+  's.duplicateAccount': ['Дублировать аккаунт', 'Duplicate account'],
+  's.accountCopy': ['копия', 'copy'],
+  's.quickAccounts': ['Быстрые платформы и аккаунты', 'Quick platforms & accounts'],
+  's.instantSwitch': ['Переключить платформу', 'Switch platform'],
   's.keyMissing': ['без ключа', 'no key'],
   's.freeBadge': ['бесплатно', 'free'],
   's.freeNote': [

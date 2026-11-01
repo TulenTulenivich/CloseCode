@@ -85,16 +85,18 @@ export const streamOpenAi: ProviderStream = async (
     stream: true,
     messages: toOpenAiMessages(request.messages, request.system)
   }
+  const isDeepSeek = request.baseUrl.includes('deepseek') || request.model.toLowerCase().includes('deepseek')
   const isReasoning = /(^|[/-])(o[134]|gpt-5)/i.test(request.model)
   if (request.maxTokens) {
-    if (isReasoning && !request.baseUrl.includes('deepseek')) {
+    if (isReasoning && !isDeepSeek) {
       body.max_completion_tokens = request.maxTokens
     } else {
       body.max_tokens = request.maxTokens
     }
   }
-  if (typeof request.temperature === 'number') body.temperature = request.temperature
-  if (request.reasoningEffort) body.reasoning_effort = request.reasoningEffort
+  const isDeepSeekReasoner = isDeepSeek && request.model.toLowerCase().includes('reasoner')
+  if (typeof request.temperature === 'number' && !isDeepSeekReasoner) body.temperature = request.temperature
+  if (request.reasoningEffort && !isDeepSeek) body.reasoning_effort = request.reasoningEffort
   if (request.tools.length) {
     body.tools = request.tools.map((tool) => ({
       type: 'function',

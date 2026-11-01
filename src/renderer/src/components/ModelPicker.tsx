@@ -125,6 +125,36 @@ export function ModelPicker({
             <span className="model-popover-hint">{t('mp.hint')}</span>
           </div>
 
+          {available.length > 1 && (
+            <div className="platform-switch-bar" role="tablist" aria-label={t('s.quickAccounts')}>
+              {available.map((provider) => {
+                const isSelected = provider.id === activeProviderId
+                const brand = brandForProvider(provider)
+                return (
+                  <button
+                    key={provider.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isSelected}
+                    className={`platform-chip${isSelected ? ' active' : ''}`}
+                    onClick={() => {
+                      const firstModel = provider.models[0] || activeModel || ''
+                      if (firstModel) {
+                        setOpen(false)
+                        onSelect(provider.id, firstModel)
+                      }
+                    }}
+                    title={`${provider.label} · ${provider.models[0] ?? ''}`}
+                  >
+                    <ProviderLogo brand={brand} size={15} />
+                    <span className="platform-chip-label">{provider.label}</span>
+                    {isSelected && <span className="platform-chip-dot" />}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
           <input
             className="input model-search"
             value={query}
