@@ -45,6 +45,7 @@ const api: CloseCodeApi = {
   answerQuestion: (id, answer) => ipcRenderer.invoke('question:respond', id, answer),
   getActivity: () => ipcRenderer.invoke('activity:get'),
   exportChat: (payload) => ipcRenderer.invoke('chat:export', payload),
+  exportChatJson: (defaultName) => ipcRenderer.invoke('chat:export-json', defaultName),
   onAgentEvent: (listener) => {
     const handler = (_event: Electron.IpcRendererEvent, event: AgentEvent): void => listener(event)
     ipcRenderer.on('agent:event', handler)

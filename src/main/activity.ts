@@ -72,12 +72,25 @@ function prune(store: StoredActivity): void {
 
 function persist(store: StoredActivity): void {
   const file = activityFile()
+  const temp = `${file}.tmp`
   try {
     fs.mkdirSync(path.dirname(file), { recursive: true })
-    const temp = `${file}.tmp`
     fs.writeFileSync(temp, JSON.stringify(store), { encoding: 'utf8', mode: 0o600 })
-    fs.renameSync(temp, file)
+    try {
+      fs.renameSync(temp, file)
+    } catch {
+      fs.copyFileSync(temp, file)
+      try {
+        fs.unlinkSync(temp)
+      } catch {
+      }
+    }
   } catch {
+    try {
+      fs.writeFileSync(file, JSON.stringify(store), { encoding: 'utf8', mode: 0o600 })
+      fs.unlinkSync(temp)
+    } catch {
+    }
   }
 }
 
@@ -134,7 +147,7 @@ export function getActivity(): ActivityView {
     date.setDate(date.getDate() - offset)
     const key = dateKey(date)
     const stored = store.days[key] ?? { messages: 0, tools: 0, writes: 0 }
-    const score = stored.messages + stored.tools + stored.writes
+    const score = stored.messages + stored.tools
     totalMessages += stored.messages
     totalTools += stored.tools
     totalWrites += stored.writes
@@ -146,7 +159,7 @@ export function getActivity(): ActivityView {
   let longestStreak = 0
   let run = 0
   for (const day of days) {
-    if (day.messages + day.tools + day.writes > 0) {
+    if (day.messages + day.tools > 0) {
       run += 1
       if (run > longestStreak) longestStreak = run
     } else {
@@ -156,7 +169,7 @@ export function getActivity(): ActivityView {
 
   let currentStreak = 0
   for (let index = days.length - 1; index >= 0; index--) {
-    const score = days[index].messages + days[index].tools + days[index].writes
+    const score = days[index].messages + days[index].tools
     if (score > 0) currentStreak += 1
     else if (index === days.length - 1) continue
     else break

@@ -20,6 +20,11 @@ interface SidebarProps {
   onOpenSettings: () => void
 }
 
+function samePath(a: string | null | undefined, b: string | null | undefined): boolean {
+  if (!a || !b) return false
+  return a.replace(/[\\/]+$/, '').toLowerCase() === b.replace(/[\\/]+$/, '').toLowerCase()
+}
+
 function timeAgo(stamp: number, i18n: RendererTranslator): string {
   const diff = Date.now() - stamp
   const day = 24 * 60 * 60 * 1000
@@ -104,7 +109,7 @@ export function Sidebar({
 
           <div className="project-list">
             {projects.map((project) => {
-              const isActive = project.path === settings.activeProjectPath
+              const isActive = samePath(project.path, settings.activeProjectPath)
               return (
                 <div
                   className={`project-card${isActive ? ' active' : ''}${project.available ? '' : ' gone'}`}

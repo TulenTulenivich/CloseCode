@@ -194,18 +194,20 @@ function startShell(cols: number, rows: number): TerminalSessionInfo {
     process.platform === 'win32'
       ? process.env.CLOSECODE_SHELL || 'powershell.exe'
       : process.env.SHELL || '/bin/bash'
-  const args = process.platform === 'win32' ? ['-NoLogo'] : ['-l']
+  const isCmd = process.platform === 'win32' && shellPath.toLowerCase().endsWith('cmd.exe')
+  const args = isCmd ? [] : process.platform === 'win32' ? ['-NoLogo'] : ['-l']
+  const shellEnv: Record<string, string | undefined> = {
+    ...process.env,
+    TERM: 'xterm-256color',
+    COLORTERM: 'truecolor'
+  }
+  delete shellEnv.ELECTRON_RUN_AS_NODE
   const child = spawnPty(shellPath, args, {
     name: 'xterm-256color',
     cols: safeCols,
     rows: safeRows,
     cwd,
-    env: {
-      ...process.env,
-      TERM: 'xterm-256color',
-      COLORTERM: 'truecolor',
-      ELECTRON_RUN_AS_NODE: undefined
-    }
+    env: shellEnv
   })
   const id = `term-${++terminalSeq}`
   terminal = { id, pty: child }
@@ -747,6 +749,9 @@ async function buildSecondOpinion(): Promise<SecondOpinionResult> {
   ].join('\n')
 
   const controller = new AbortController()
+  running = true
+  runController = controller
+  startLoadTicker()
   const timer = setTimeout(() => controller.abort(), 150_000)
   timer.unref?.()
   const stream = provider.kind === 'anthropic' ? streamAnthropic : streamOpenAi
@@ -772,6 +777,11 @@ async function buildSecondOpinion(): Promise<SecondOpinionResult> {
     return { text, model, providerLabel: reviewer.label }
   } finally {
     clearTimeout(timer)
+    running = false
+    runController = null
+    stopLoadTicker()
+    emitContext()
+    emitLoad()
   }
 }
 
@@ -1107,8 +1117,6 @@ function registerIpc(): void {
     runController = controller
     startLoadTicker()
 
-    appendUserTurn(userContent, images)
-
     try {
       await compactHistoryIfNeeded({
         messages: history,
@@ -1147,6 +1155,7 @@ function registerIpc(): void {
       return
     }
 
+    appendUserTurn(userContent, images)
     history.push({
       role: 'user',
       content: userContent,
@@ -1213,6 +1222,15 @@ function registerIpc(): void {
         emitLoad()
       },
       onAssistantTurn: (message) => appendAssistantTurns([message]),
+      onUserTurnAttached: (message) => {
+        if (!privateSession) {
+          transcript.push({
+            role: 'user',
+            content: message.content,
+            images: message.role === 'user' ? message.images : undefined
+          })
+        }
+      },
       onProjectSwitch: (target) => {
         pendingProject = target
       },
@@ -1252,6 +1270,16 @@ function registerIpc(): void {
           emit({ type: 'done', cancelled: true })
           return
         }
+        const lastMsg = history[history.length - 1]
+        if (lastMsg && lastMsg.role === 'user') {
+          const errMsg = error instanceof Error ? error.message : String(error)
+          const fallbackAssistant: ChatMessage = {
+            role: 'assistant',
+            content: `${tr('e.providerError')}: ${errMsg}`
+          }
+          history.push(fallbackAssistant)
+          appendAssistantTurns([fallbackAssistant])
+        }
         emit({
           type: 'error',
           message: error instanceof Error ? error.message : String(error)
@@ -1286,6 +1314,26 @@ function registerIpc(): void {
     currentTitle = ''
     if (!privateSession) clearHistory(getProjectPath())
     emitContext()
+  })
+
+  ipcMain.handle('chat:export-json', async (_event, defaultName?: unknown) => {
+    if (!mainWindow) return null
+    const filename = typeof defaultName === 'string' && defaultName.trim()
+      ? defaultName.trim()
+      : `closecode-${Date.now().toString(36)}.json`
+    const result = await dialog.showSaveDialog(mainWindow, {
+      defaultPath: filename,
+      filters: [{ name: 'JSON', extensions: ['json'] }]
+    })
+    if (result.canceled || !result.filePath) return null
+    const data = {
+      project: getProjectPath(),
+      exportedAt: new Date().toISOString(),
+      messages: history,
+      transcript
+    }
+    fs.writeFileSync(result.filePath, JSON.stringify(data, null, 2), 'utf8')
+    return result.filePath
   })
 
   ipcMain.handle('chat:export', async (_event, payload: ExportChatPayload) => {

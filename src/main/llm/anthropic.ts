@@ -44,8 +44,9 @@ function toAnthropicMessages(messages: ChatMessage[]): AnthropicMessage[] {
   const result: AnthropicMessage[] = []
 
   const push = (role: 'user' | 'assistant', blocks: AnthropicContentBlock[]): void => {
+    if (!blocks.length) return
     const last = result[result.length - 1]
-    if (last && last.role === role && role === 'user') {
+    if (last && last.role === role) {
       last.content.push(...blocks)
       return
     }
@@ -66,6 +67,9 @@ function toAnthropicMessages(messages: ChatMessage[]): AnthropicMessage[] {
           input: parseJsonObject(call.arguments || '{}')
         })
       }
+      if (!blocks.length && !message.content.trim()) {
+        blocks.push({ type: 'text', text: ' ' })
+      }
       if (blocks.length) push('assistant', blocks)
     } else {
       push('user', [
@@ -76,6 +80,10 @@ function toAnthropicMessages(messages: ChatMessage[]): AnthropicMessage[] {
         }
       ])
     }
+  }
+
+  if (result.length && result[0].role !== 'user') {
+    result.unshift({ role: 'user', content: [{ type: 'text', text: ' ' }] })
   }
   return result
 }
@@ -92,14 +100,21 @@ export const streamAnthropic: ProviderStream = async (
   }
   if (request.apiKey) headers['x-api-key'] = request.apiKey
 
+  const thinkingBudget =
+    request.thinkingBudget && request.thinkingBudget >= 1024 ? request.thinkingBudget : 0
+  let maxTokens = request.maxTokens ?? 8192
+  if (thinkingBudget > 0 && maxTokens <= thinkingBudget) {
+    maxTokens = thinkingBudget + 2048
+  }
+
   const body: Record<string, unknown> = {
     model: request.model,
-    max_tokens: request.maxTokens ?? 8192,
+    max_tokens: maxTokens,
     messages: toAnthropicMessages(request.messages),
     stream: true
   }
-  if (request.thinkingBudget && request.thinkingBudget >= 1024) {
-    body.thinking = { type: 'enabled', budget_tokens: request.thinkingBudget }
+  if (thinkingBudget > 0) {
+    body.thinking = { type: 'enabled', budget_tokens: thinkingBudget }
     body.temperature = 1
   } else if (typeof request.temperature === 'number') {
     body.temperature = request.temperature
@@ -164,6 +179,7 @@ export const streamAnthropic: ProviderStream = async (
         onText(delta.text)
       } else if (block.type === 'thinking' && delta.type === 'thinking_delta' && typeof delta.thinking === 'string') {
         reasoning += delta.thinking
+        if (!text) onText(delta.thinking)
       } else if (block.type === 'tool' && delta.type === 'input_json_delta' && typeof delta.partial_json === 'string') {
         block.json = (block.json ?? '') + delta.partial_json
       }

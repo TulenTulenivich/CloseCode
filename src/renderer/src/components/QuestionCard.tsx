@@ -25,7 +25,7 @@ export function QuestionCard({ question, onAnswer }: QuestionCardProps): ReactNo
       const index = Number(event.key) - 1
       if (!Number.isInteger(index) || index < 0 || index >= question.options.length) return
       const target = event.target as HTMLElement | null
-      if (target instanceof HTMLInputElement) return
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable) return
       event.preventDefault()
       onAnswer(question.options[index])
     }
